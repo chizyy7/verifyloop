@@ -129,6 +129,11 @@ Actual results:
 | `run-20261020-002558-5f8637` | oneshot | edit_json | 1 | `failed_tests` | 1 | 528 + 61 | 15.70 | 34.74 |
 | `run-20261020-002658-e39d91` | evidence_guided | edit_json | 2 | `patch_rejected` | 2 | 979 + 94 | 35.22 | 54.28 |
 | `run-20261020-014716-223203` | oneshot | diff | 1 | `patch_rejected` | 1 | 556 + 159 | 55.52 | 62.60 |
+| `run-20261020-015055-431a09` | oneshot | edit_json (config default) | 1 | `failed_tests` | 1 | 528 + 61 | 14.58 | 27.48 |
+
+The last row is the documented one-line pilot command run **without** a
+`--patch-format` override; the run manifest records `patch_format: edit_json`,
+`provider: ollama`, and `model: llama3.2:3b`.
 
 ### What was verified mechanically
 
@@ -215,7 +220,7 @@ This is a single-task observation and is not a general claim about diff vs JSON.
 - `verifyloop smoke-test`: **3/3 scenarios pass** (one-shot success, wrong-then-right
   evidence repair, exhausted failures).
 - Unit tests: **115 passed** in 14.23 s.
-- Full suite (unit, security, benchmark, integration): **163 passed** in 271.66 s.
+- Full suite (unit, security, benchmark, integration): **164 passed** in 246.67 s.
 - No changes were made to WSL, Docker, n8n, credentials, or unrelated files.
 
 ## 8. Limitations and next step
