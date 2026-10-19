@@ -145,7 +145,9 @@ The last row is the documented one-line pilot command run **without** a
   separate workspace the model never saw.
 - **Failure recording**: every attempt stores category, rejection reason, token
   usage, generation time, and the exact model text (bounded by
-  `max_output_chars`).
+  `max_output_chars`). The earliest diff run in the table predates this field, so
+  its rejection reason is recorded but its exact text is not; the later diff run
+  was repeated specifically to archive the malformed patch verbatim.
 - **Model errors**: exercised by the integration suite with a simulated provider
   timeout (`tests/integration/test_controller.py`); the attempt records
   `model_error` and the run ends as an infrastructure error when no budget remains.
