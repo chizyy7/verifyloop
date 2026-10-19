@@ -1,0 +1,30 @@
+{
+  "category": "boundary_condition",
+  "description": "The paginate() helper in paging.py is used by the reporting service to slice records into pages. Users report that every page is missing its final record: page 1 of 10 items with per_page=3 returns only 2 items. Fix paginate() so that a full page contains per_page items, a partial final page returns the remainder, and out-of-range pages return an empty list. Keep the existing validation that page and per_page must be >= 1.",
+  "difficulty": "easy",
+  "eval_command": [
+    "python",
+    "-m",
+    "pytest",
+    "eval_tests",
+    "-q"
+  ],
+  "expected_behavior": "paginate(range(10), 1, 3) == [0, 1, 2]; paginate(range(10), 4, 3) == [9]; paginate(range(10), 9, 3) == []. Validation errors unchanged.",
+  "feedback_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "feedback_test_paths": [
+    "tests/test_paging.py"
+  ],
+  "id": "boundary_paginate_001",
+  "notes": "Synthetic defect seeded for the VerifyLoop benchmark. Not a production incident.",
+  "reference_fix": "reference/fix.patch",
+  "reference_fix_sha256": "b1ce722159da2b34bc6703538a662f541af38a1ba88a2823145ce4e348bfa090",
+  "repo_dir": "repo",
+  "synthetic": true,
+  "title": "Pagination drops the last item of every page"
+}

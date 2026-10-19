@@ -1,0 +1,30 @@
+{
+  "category": "multi_file",
+  "description": "The configuration package has two modules: defaults.py holds a module-level DEFAULTS dictionary including a nested 'headers' mapping, and settings.py merges caller overrides into it. load_settings() currently aliases DEFAULTS instead of copying it, so one call permanently changes the defaults seen by every later call, and nested dictionaries are shared. Fix settings.load_settings() so each call returns an independent deep copy and defaults.DEFAULTS is never modified. Do not change defaults.py.",
+  "difficulty": "hard",
+  "eval_command": [
+    "python",
+    "-m",
+    "pytest",
+    "eval_tests",
+    "-q"
+  ],
+  "expected_behavior": "After load_settings({'timeout': 99}), defaults.DEFAULTS['timeout'] is still 30. Mutating the returned 'headers' does not affect DEFAULTS. Two calls are independent.",
+  "feedback_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "feedback_test_paths": [
+    "tests/test_settings.py"
+  ],
+  "id": "multifile_settings_013",
+  "notes": "Synthetic defect seeded for the VerifyLoop benchmark. Not a production incident.",
+  "reference_fix": "reference/fix.patch",
+  "reference_fix_sha256": "1c3ac04b5832aa2e1baa15d9401f4677bcdbb45f1d3990c76ee8c28f400eae35",
+  "repo_dir": "repo",
+  "synthetic": true,
+  "title": "Settings loader mutates shared defaults across modules"
+}

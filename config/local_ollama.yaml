@@ -1,0 +1,58 @@
+# Local CPU-only pilot configuration.
+#
+# Usage:
+#   python -m verifyloop provider-check --config config/local_ollama.yaml
+#   python -m verifyloop run --config config/local_ollama.yaml \
+#       --task-ids boundary_paginate_001 --strategies oneshot --trials 1
+#
+# These budgets are deliberately small: this is a feasibility pilot on a laptop,
+# not a statistically powered experiment. Results are labelled with the exact
+# model id recorded in the run manifest.
+#
+# Patch format: pilot evidence (2026-10-20) showed llama3.2:3b produced malformed
+# unified diffs (hunk counts did not match the body) in both diff-mode attempts,
+# while its edit_json output parsed and applied. This local config therefore uses
+# edit_json. The repository-wide default remains `diff`.
+
+name: local-ollama-pilot
+notes: >
+  Feasibility pilot using llama3.2:3b through Ollama on a CPU-only laptop.
+  Not a statistically powered experiment; do not interpret differences between
+  strategies at this sample size.
+
+provider:
+  provider: ollama
+  model: llama3.2:3b
+  base_url: http://localhost:11434
+  request_timeout_seconds: 120
+  max_output_tokens: 700
+  temperature: 0.0
+  seed: 0
+
+budgets:
+  max_attempts: 2
+  max_model_calls: 6
+  max_total_tokens: 40000
+  max_wall_clock_seconds: 600
+  max_patch_bytes: 24000
+  max_output_chars: 6000
+  test_timeout_seconds: 60
+
+execution:
+  allowed_commands:
+    - python
+    - python3
+    - py
+    - pytest
+  workspace_root: null
+  keep_workspaces: false
+
+strategies:
+  - oneshot
+  - blind_retry
+  - evidence_guided
+
+trials: 1
+task_order: fixed
+patch_format: edit_json
+output_dir: outputs

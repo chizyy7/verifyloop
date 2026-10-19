@@ -1,0 +1,20 @@
+--- a/storage.py
++++ b/storage.py
+@@ -4,9 +4,15 @@
+ 
+ 
+ def load_json(path, default=None):
+-    """Load JSON from ``path``, returning ``default`` when it cannot be read."""
++    """Load JSON from ``path``.
++
++    A missing file returns ``default``. Malformed JSON raises ``ValueError``. Other
++    OS-level failures propagate so callers can distinguish corruption from absence.
++    """
+     try:
+         with open(path, "r", encoding="utf-8") as handle:
+             return json.load(handle)
+-    except Exception:
++    except FileNotFoundError:
+         return default
++    except json.JSONDecodeError as exc:
++        raise ValueError("invalid JSON in %s" % path) from exc

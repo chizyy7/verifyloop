@@ -1,0 +1,8 @@
+--- a/pipeline.py
++++ b/pipeline.py
+@@ -5,4 +5,4 @@
+ 
+ def clean(rows):
+     """Strip whitespace and remove empty rows."""
+-    return strip_whitespace(drop_empty(rows))
++    return drop_empty(strip_whitespace(rows))

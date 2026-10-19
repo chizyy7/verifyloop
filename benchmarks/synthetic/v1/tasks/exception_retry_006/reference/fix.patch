@@ -1,0 +1,11 @@
+--- a/resilience.py
++++ b/resilience.py
+@@ -12,7 +12,7 @@
+         @wraps(func)
+         def wrapper(*args, **kwargs):
+             last_error = None
+-            for _ in range(times - 1):
++            for _ in range(times):
+                 try:
+                     return func(*args, **kwargs)
+                 except exceptions as exc:

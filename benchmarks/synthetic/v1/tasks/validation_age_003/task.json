@@ -1,0 +1,30 @@
+{
+  "category": "input_validation",
+  "description": "validation.py validates a user's age before persistence. It currently rejects ages above 150 but accepts negative ages, and it also accepts booleans because bool is a subclass of int. Fix validate_age() so it accepts integers in the inclusive range 0..150, rejects booleans with TypeError, and keeps raising ValueError for out-of-range numbers.",
+  "difficulty": "easy",
+  "eval_command": [
+    "python",
+    "-m",
+    "pytest",
+    "eval_tests",
+    "-q"
+  ],
+  "expected_behavior": "validate_age(0) == 0 and validate_age(150) == 150. validate_age(-1) and validate_age(151) raise ValueError. validate_age(True) raises TypeError.",
+  "feedback_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "feedback_test_paths": [
+    "tests/test_validation.py"
+  ],
+  "id": "validation_age_003",
+  "notes": "Synthetic defect seeded for the VerifyLoop benchmark. Not a production incident.",
+  "reference_fix": "reference/fix.patch",
+  "reference_fix_sha256": "7fe99ba3e6c07dd0fefbab342f8144b4518e4e3603a3cc399bd7a96ae47d5ba6",
+  "repo_dir": "repo",
+  "synthetic": true,
+  "title": "Age validation accepts impossible values"
+}

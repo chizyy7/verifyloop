@@ -1,0 +1,13 @@
+--- a/validation.py
++++ b/validation.py
+@@ -3,8 +3,8 @@
+ 
+ def validate_age(value):
+     """Return a validated age, or raise on invalid input."""
+-    if not isinstance(value, int):
++    if isinstance(value, bool) or not isinstance(value, int):
+         raise TypeError("age must be an int")
+-    if value > 150:
++    if value < 0 or value > 150:
+         raise ValueError("age must be between 0 and 150")
+     return value

@@ -1,0 +1,30 @@
+{
+  "category": "input_validation",
+  "description": "ingest.py parses a single CSV line with str.split(','). Fields that contain a comma inside double quotes are therefore split incorrectly, and quoted fields keep their surrounding quotes. Replace the manual split with Python's csv module so quoted commas and doubled quotes are handled correctly, while plain lines keep working.",
+  "difficulty": "medium",
+  "eval_command": [
+    "python",
+    "-m",
+    "pytest",
+    "eval_tests",
+    "-q"
+  ],
+  "expected_behavior": "parse_csv_line('a,b,c') == ['a', 'b', 'c']; parse_csv_line('a,\"b,c\",d') == ['a', 'b,c', 'd']; parse_csv_line('a,\"say \"\"hi\"\"\",b') == ['a', 'say \"hi\"', 'b'].",
+  "feedback_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "feedback_test_paths": [
+    "tests/test_ingest.py"
+  ],
+  "id": "validation_csv_016",
+  "notes": "Synthetic defect seeded for the VerifyLoop benchmark. Not a production incident.",
+  "reference_fix": "reference/fix.patch",
+  "reference_fix_sha256": "08abd83cf813af881374a29ebe5098bf983cab294dd8eb041adafe47cc5708f5",
+  "repo_dir": "repo",
+  "synthetic": true,
+  "title": "CSV line parser breaks on quoted commas"
+}

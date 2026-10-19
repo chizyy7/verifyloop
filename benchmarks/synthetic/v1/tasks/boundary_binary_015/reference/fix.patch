@@ -1,0 +1,20 @@
+--- a/search.py
++++ b/search.py
+@@ -8,12 +8,14 @@
+     first occurrence is required.
+     """
+     low, high = 0, len(items) - 1
++    found = -1
+     while low <= high:
+         middle = (low + high) // 2
+         if items[middle] == target:
+-            return middle
+-        if items[middle] < target:
++            found = middle
++            high = middle - 1
++        elif items[middle] < target:
+             low = middle + 1
+         else:
+             high = middle - 1
+-    return -1
++    return found

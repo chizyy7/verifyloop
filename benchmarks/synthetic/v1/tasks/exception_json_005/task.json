@@ -1,0 +1,30 @@
+{
+  "category": "exception_handling",
+  "description": "storage.py contains load_json(), which wraps the whole read in 'except Exception' and returns the default value. This hides corrupted files and programming errors. Fix it so that only a missing file returns the default; malformed JSON raises ValueError with the original exception chained; and other OSError conditions propagate unchanged.",
+  "difficulty": "medium",
+  "eval_command": [
+    "python",
+    "-m",
+    "pytest",
+    "eval_tests",
+    "-q"
+  ],
+  "expected_behavior": "Missing path returns default. Valid JSON returns parsed data. Invalid JSON raises ValueError. Permission errors are not converted to the default.",
+  "feedback_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "feedback_test_paths": [
+    "tests/test_storage.py"
+  ],
+  "id": "exception_json_005",
+  "notes": "Synthetic defect seeded for the VerifyLoop benchmark. Not a production incident.",
+  "reference_fix": "reference/fix.patch",
+  "reference_fix_sha256": "8c6e83bed8ecf47383ddff5deb7e07bf8b2acdbfa262bc4b9db41924a10dc3ad",
+  "repo_dir": "repo",
+  "synthetic": true,
+  "title": "JSON loader swallows every error"
+}

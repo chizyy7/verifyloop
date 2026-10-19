@@ -1,0 +1,30 @@
+{
+  "category": "sorting_filtering",
+  "description": "reports.py filters records by a minimum score. Two defects are reported: the comparison uses > so records exactly at the threshold are dropped, and records without a usable numeric score raise KeyError or TypeError instead of being skipped. Fix filter_by_score() so the threshold is inclusive and records with a missing or non-numeric score are excluded without raising.",
+  "difficulty": "medium",
+  "eval_command": [
+    "python",
+    "-m",
+    "pytest",
+    "eval_tests",
+    "-q"
+  ],
+  "expected_behavior": "filter_by_score([{'score': 5}], 5) keeps the record. Records with no 'score' key, None, or a string are skipped. Order is preserved.",
+  "feedback_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "feedback_test_paths": [
+    "tests/test_reports.py"
+  ],
+  "id": "filtering_score_008",
+  "notes": "Synthetic defect seeded for the VerifyLoop benchmark. Not a production incident.",
+  "reference_fix": "reference/fix.patch",
+  "reference_fix_sha256": "59c060a30f0b79c5948ab8ae85aeca111f838b0c2a66fe1a9de5db3c7a3bf7c3",
+  "repo_dir": "repo",
+  "synthetic": true,
+  "title": "Score filter excludes the boundary and crashes on missing data"
+}

@@ -1,0 +1,30 @@
+{
+  "category": "input_validation",
+  "description": "contacts.py parses 'Name <email>' strings. The current email check only allows lowercase letters and a single dot, so addresses containing digits, dots in the local part, or a plus tag are wrongly rejected. Fix parse_contact() so it accepts common valid addresses (letters, digits, dots, underscores, plus tags, hyphens in the domain), still rejects strings without an @ or with no dot in the domain, and keeps raising ValueError for malformed input.",
+  "difficulty": "medium",
+  "eval_command": [
+    "python",
+    "-m",
+    "pytest",
+    "eval_tests",
+    "-q"
+  ],
+  "expected_behavior": "parse_contact('Ada <ada+research@example.co.uk>') returns the name and address; parse_contact('bad-address') raises ValueError.",
+  "feedback_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "feedback_test_paths": [
+    "tests/test_contacts.py"
+  ],
+  "id": "validation_email_004",
+  "notes": "Synthetic defect seeded for the VerifyLoop benchmark. Not a production incident.",
+  "reference_fix": "reference/fix.patch",
+  "reference_fix_sha256": "8da3113d2fbc5be9e1da3e9f79ebc98040d0a2ac13ec3bf04162bd3283669c7b",
+  "repo_dir": "repo",
+  "synthetic": true,
+  "title": "Contact parser rejects valid email addresses"
+}

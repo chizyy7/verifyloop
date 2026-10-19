@@ -1,0 +1,30 @@
+{
+  "category": "return_value",
+  "description": "money.py rounds monetary amounts to two decimal places for invoices. It uses the built-in round(), which applies banker's rounding and binary floating point, so 2.675 becomes 2.67 instead of the invoicing rule 2.68. Implement round_cents() using decimal arithmetic with ROUND_HALF_UP and return a float rounded to two decimal places.",
+  "difficulty": "medium",
+  "eval_command": [
+    "python",
+    "-m",
+    "pytest",
+    "eval_tests",
+    "-q"
+  ],
+  "expected_behavior": "round_cents(2.675) == 2.68; round_cents(1.005) == 1.01; round_cents(-2.675) == -2.68; round_cents(10) == 10.0.",
+  "feedback_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "feedback_test_paths": [
+    "tests/test_money.py"
+  ],
+  "id": "return_rounding_010",
+  "notes": "Synthetic defect seeded for the VerifyLoop benchmark. Not a production incident.",
+  "reference_fix": "reference/fix.patch",
+  "reference_fix_sha256": "0bb10b066e18ded32d61a062bf713c54285ba1f22e04b9bdec4832a31bf03607",
+  "repo_dir": "repo",
+  "synthetic": true,
+  "title": "Currency rounding uses banker's rounding"
+}

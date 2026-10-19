@@ -1,0 +1,12 @@
+--- a/ingest.py
++++ b/ingest.py
+@@ -1,6 +1,8 @@
+ """Line-oriented CSV ingestion."""
++
++import csv
+ 
+ 
+ def parse_csv_line(line):
+     """Split one CSV line into fields."""
+-    return line.split(",")
++    return next(csv.reader([line]))

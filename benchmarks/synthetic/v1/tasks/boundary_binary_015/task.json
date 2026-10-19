@@ -1,0 +1,30 @@
+{
+  "category": "boundary_condition",
+  "description": "search.py implements binary_search over a sorted list. The function currently returns whichever matching index the midpoint lands on, but its documented contract requires the index of the *first* occurrence of the target. Fix the implementation so it returns the first index, keeps returning -1 for missing values, and remains O(log n).",
+  "difficulty": "medium",
+  "eval_command": [
+    "python",
+    "-m",
+    "pytest",
+    "eval_tests",
+    "-q"
+  ],
+  "expected_behavior": "binary_search([1, 2, 2, 2, 3], 2) == 1; binary_search([], 1) == -1; binary_search([1, 3, 5], 4) == -1.",
+  "feedback_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "feedback_test_paths": [
+    "tests/test_search.py"
+  ],
+  "id": "boundary_binary_015",
+  "notes": "Synthetic defect seeded for the VerifyLoop benchmark. Not a production incident.",
+  "reference_fix": "reference/fix.patch",
+  "reference_fix_sha256": "a76110dc9191664488b7dc8d4ffa393d55260f81305770a547bbc48fa73edbe4",
+  "repo_dir": "repo",
+  "synthetic": true,
+  "title": "Binary search returns an arbitrary duplicate index"
+}

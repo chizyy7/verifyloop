@@ -1,0 +1,15 @@
+--- a/reports.py
++++ b/reports.py
+@@ -3,4 +3,11 @@
+ 
+ def filter_by_score(records, minimum):
+     """Return records whose score is at least ``minimum``."""
+-    return [record for record in records if record["score"] > minimum]
++    selected = []
++    for record in records:
++        score = record.get("score")
++        if isinstance(score, bool) or not isinstance(score, (int, float)):
++            continue
++        if score >= minimum:
++            selected.append(record)
++    return selected

@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "verifyloop"
+version = "0.1.0"
+description = "Evidence-guided test-and-repair loops for small language model coding agents"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "VerifyLoop contributors" }]
+dependencies = [
+    "pydantic>=2.5",
+    "PyYAML>=6.0",
+    "httpx>=0.24",
+]
+
+[project.optional-dependencies]
+ui = ["streamlit>=1.30", "pandas>=2.0"]
+analysis = ["matplotlib>=3.7", "numpy>=1.24", "scipy>=1.10"]
+dev = ["pytest>=7.4"]
+
+[project.scripts]
+verifyloop = "verifyloop.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::pytest.PytestCollectionWarning",
+]
+
+[tool.verifyloop]
+# Marker consumed by the CLI to locate the bundled benchmark.
+benchmark_root = "benchmarks/synthetic"

@@ -1,0 +1,18 @@
+--- a/settings.py
++++ b/settings.py
+@@ -1,11 +1,13 @@
+ """Settings merging."""
++
++import copy
+ 
+ from defaults import DEFAULTS
+ 
+ 
+ def load_settings(overrides=None):
+-    """Return defaults merged with ``overrides``."""
+-    merged = DEFAULTS
++    """Return an independent copy of the defaults merged with ``overrides``."""
++    merged = copy.deepcopy(DEFAULTS)
+     if overrides:
+         merged.update(overrides)
+     return merged

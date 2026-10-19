@@ -1,0 +1,54 @@
+# VerifyLoop experiment configuration.
+#
+# Credentials are NEVER stored here. `api_key_env` names an environment variable.
+# Environment variables (MODEL_PROVIDER, MODEL_NAME, ...) override these values.
+
+name: default
+notes: >
+  Declarative default configuration. The committed file uses the deterministic
+  mock provider so the repository is runnable offline. Real-model runs override
+  MODEL_PROVIDER/MODEL_NAME through the environment and record the resolved
+  values in each run's reproducibility manifest.
+
+benchmark:
+  root: benchmarks/synthetic
+  version: v1
+  task_ids: []
+
+provider:
+  provider: mock
+  model: mock-scripted
+  base_url: http://localhost:11434
+  api_key_env: MODEL_API_KEY
+  request_timeout_seconds: 180
+  max_output_tokens: 900
+  temperature: 0.0
+  seed: 0
+
+budgets:
+  max_attempts: 3
+  max_model_calls: 12
+  max_total_tokens: 60000
+  max_wall_clock_seconds: 900
+  max_patch_bytes: 24000
+  max_output_chars: 6000
+  test_timeout_seconds: 120
+
+execution:
+  allowed_commands:
+    - python
+    - python3
+    - py
+    - pytest
+  workspace_root: null
+  keep_workspaces: false
+
+strategies:
+  - oneshot
+  - blind_retry
+  - evidence_guided
+
+trials: 1
+task_order: fixed
+patch_format: diff
+output_dir: outputs

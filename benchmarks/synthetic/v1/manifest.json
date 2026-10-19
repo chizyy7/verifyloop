@@ -1,0 +1,145 @@
+{
+  "categories": [
+    "boundary_condition",
+    "exception_handling",
+    "input_validation",
+    "multi_file",
+    "multi_function",
+    "return_value",
+    "sorting_filtering"
+  ],
+  "description": "Self-contained synthetic Python bug-fixing tasks with visible feedback tests and hidden evaluation tests. Every defect is deliberately seeded.",
+  "name": "verifyloop-synthetic",
+  "task_count": 16,
+  "tasks": [
+    {
+      "category": "boundary_condition",
+      "difficulty": "easy",
+      "id": "boundary_paginate_001",
+      "path": "tasks/boundary_paginate_001",
+      "task_sha256": "f32caa8d1f12d61bac3154841c32128e98c70c074ebf15adbfc6f730d9d493de",
+      "title": "Pagination drops the last item of every page"
+    },
+    {
+      "category": "boundary_condition",
+      "difficulty": "medium",
+      "id": "boundary_stats_002",
+      "path": "tasks/boundary_stats_002",
+      "task_sha256": "9801be2e736b900c259ce90953344bdd3977747de1884928c08c4054cb57ba25",
+      "title": "Statistics helpers fail on empty and even-length input"
+    },
+    {
+      "category": "boundary_condition",
+      "difficulty": "medium",
+      "id": "boundary_binary_015",
+      "path": "tasks/boundary_binary_015",
+      "task_sha256": "e6f276f3a9dc9b18df31c73731b12f2c0d60e69739e0ebe1ccb221a33e6a79f7",
+      "title": "Binary search returns an arbitrary duplicate index"
+    },
+    {
+      "category": "input_validation",
+      "difficulty": "easy",
+      "id": "validation_age_003",
+      "path": "tasks/validation_age_003",
+      "task_sha256": "309030938762e151dc9483812511fe2b9fac8c2bce911b96e6c98127ffe72a63",
+      "title": "Age validation accepts impossible values"
+    },
+    {
+      "category": "input_validation",
+      "difficulty": "medium",
+      "id": "validation_email_004",
+      "path": "tasks/validation_email_004",
+      "task_sha256": "c62847bffd2630030811b385b9d9f8a8e976d76065caa8ce10b7eff9a0554e6d",
+      "title": "Contact parser rejects valid email addresses"
+    },
+    {
+      "category": "input_validation",
+      "difficulty": "medium",
+      "id": "validation_csv_016",
+      "path": "tasks/validation_csv_016",
+      "task_sha256": "f49245fd884a805310af7776ab2591b226cbeef128027ba2b03feaa5a1477df7",
+      "title": "CSV line parser breaks on quoted commas"
+    },
+    {
+      "category": "exception_handling",
+      "difficulty": "medium",
+      "id": "exception_json_005",
+      "path": "tasks/exception_json_005",
+      "task_sha256": "aa249b894a6a0c5758f529f548d58dbe97e29d098950f1cc5e03135be43fad90",
+      "title": "JSON loader swallows every error"
+    },
+    {
+      "category": "exception_handling",
+      "difficulty": "medium",
+      "id": "exception_retry_006",
+      "path": "tasks/exception_retry_006",
+      "task_sha256": "ab0669c02256f6a6ceb72474e154e1acc7c3a632fb61c5ac57c315488b369994",
+      "title": "Retry decorator performs one attempt too few"
+    },
+    {
+      "category": "sorting_filtering",
+      "difficulty": "easy",
+      "id": "sorting_records_007",
+      "path": "tasks/sorting_records_007",
+      "task_sha256": "80f6ce13cc1616d3ea876e350ec970f7feb520f8efa9869b0f678ff3495a71fa",
+      "title": "Descending sort also reverses the tie-breaker"
+    },
+    {
+      "category": "sorting_filtering",
+      "difficulty": "medium",
+      "id": "filtering_score_008",
+      "path": "tasks/filtering_score_008",
+      "task_sha256": "f3cc29883b9de0659e1c7de75228a96f38b18fd8793fbbd091694d76d62a7123",
+      "title": "Score filter excludes the boundary and crashes on missing data"
+    },
+    {
+      "category": "return_value",
+      "difficulty": "easy",
+      "id": "return_missing_009",
+      "path": "tasks/return_missing_009",
+      "task_sha256": "5bc73eb8d7eb54bebf35761c1b9d89dfdfca6360504fe38b0b12334d71b3919f",
+      "title": "find_missing returns None instead of an empty list"
+    },
+    {
+      "category": "return_value",
+      "difficulty": "medium",
+      "id": "return_rounding_010",
+      "path": "tasks/return_rounding_010",
+      "task_sha256": "624483f8e6755d9144dcfdb49efbd12677ba501d7a6daf6065116c1fd6a161f5",
+      "title": "Currency rounding uses banker's rounding"
+    },
+    {
+      "category": "multi_function",
+      "difficulty": "hard",
+      "id": "multifunc_memoize_011",
+      "path": "tasks/multifunc_memoize_011",
+      "task_sha256": "487905ef547608d9bcbe21a78dd69ef096b8a64e0ffa1427d7bb93de8c0c2e73",
+      "title": "Memoization cache ignores keyword arguments"
+    },
+    {
+      "category": "multi_function",
+      "difficulty": "hard",
+      "id": "multifunc_inventory_012",
+      "path": "tasks/multifunc_inventory_012",
+      "task_sha256": "481d35e946364443472694eccee774f8e8da50fe6bb44e300e5e34e16de26463",
+      "title": "Inventory allows negative stock and invalid quantities"
+    },
+    {
+      "category": "multi_file",
+      "difficulty": "hard",
+      "id": "multifile_settings_013",
+      "path": "tasks/multifile_settings_013",
+      "task_sha256": "e3c79eac825e64848b52bb78072c212a4e68a00f30bec0bd25f467301aed1649",
+      "title": "Settings loader mutates shared defaults across modules"
+    },
+    {
+      "category": "multi_file",
+      "difficulty": "hard",
+      "id": "multifile_pipeline_014",
+      "path": "tasks/multifile_pipeline_014",
+      "task_sha256": "696c18620668fb77e59e893ee0e96d3d1963d82b2fdfee83d4e37f4f95738e5f",
+      "title": "Cleaning pipeline drops rows before stripping whitespace"
+    }
+  ],
+  "version": "v1"
+}

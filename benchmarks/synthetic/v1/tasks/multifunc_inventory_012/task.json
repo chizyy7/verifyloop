@@ -1,0 +1,30 @@
+{
+  "category": "multi_function",
+  "description": "inventory.py implements an Inventory class used by the order service. remove() subtracts without checking available stock, so stock can go negative; add() accepts zero and negative quantities; and remove() on an unknown SKU creates a negative entry. Fix the class so add() requires a positive integer quantity, remove() raises ValueError when stock is insufficient or the SKU is unknown, and failed operations leave the inventory unchanged.",
+  "difficulty": "hard",
+  "eval_command": [
+    "python",
+    "-m",
+    "pytest",
+    "eval_tests",
+    "-q"
+  ],
+  "expected_behavior": "Removing more than available raises ValueError and does not change stock. add(sku, 0) raises ValueError. available('unknown') == 0 and remove('unknown', 1) raises ValueError.",
+  "feedback_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "feedback_test_paths": [
+    "tests/test_inventory.py"
+  ],
+  "id": "multifunc_inventory_012",
+  "notes": "Synthetic defect seeded for the VerifyLoop benchmark. Not a production incident.",
+  "reference_fix": "reference/fix.patch",
+  "reference_fix_sha256": "6ce4ebf97b6900b4b7f4126f697357acd4562737091bc863311c2028cb652f3f",
+  "repo_dir": "repo",
+  "synthetic": true,
+  "title": "Inventory allows negative stock and invalid quantities"
+}

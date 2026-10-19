@@ -1,0 +1,30 @@
+{
+  "category": "multi_file",
+  "description": "The data pipeline spans two modules. transforms.py provides strip_whitespace() and drop_empty(), while pipeline.py composes them in clean(). The stages are applied in the wrong order: drop_empty() runs before whitespace is stripped, so rows containing only spaces survive as 'non-empty', and the later strip leaves them blank. Fix pipeline.clean() so whitespace-only rows are removed, without changing either function in transforms.py.",
+  "difficulty": "hard",
+  "eval_command": [
+    "python",
+    "-m",
+    "pytest",
+    "eval_tests",
+    "-q"
+  ],
+  "expected_behavior": "clean([{'name': '  '}, {'name': ' ok '}]) == [{'name': 'ok'}]. A row is empty when every value is blank after stripping.",
+  "feedback_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "feedback_test_paths": [
+    "tests/test_pipeline.py"
+  ],
+  "id": "multifile_pipeline_014",
+  "notes": "Synthetic defect seeded for the VerifyLoop benchmark. Not a production incident.",
+  "reference_fix": "reference/fix.patch",
+  "reference_fix_sha256": "ce6836cd1b963c362ebdfdf3d7de9693f0fdc23d2f8c75c901b13b03d1f10959",
+  "repo_dir": "repo",
+  "synthetic": true,
+  "title": "Cleaning pipeline drops rows before stripping whitespace"
+}

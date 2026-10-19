@@ -1,0 +1,30 @@
+{
+  "category": "boundary_condition",
+  "description": "The analytics module (stats.py) exposes mean() and median(). Two defects are reported. First, both functions raise an implementation-level error on an empty sequence instead of a ValueError with a clear message. Second, median() returns the upper middle element for even-length sequences instead of the average of the two middle elements. Fix both while keeping the functions pure.",
+  "difficulty": "medium",
+  "eval_command": [
+    "python",
+    "-m",
+    "pytest",
+    "eval_tests",
+    "-q"
+  ],
+  "expected_behavior": "mean([]) and median([]) raise ValueError. median([1, 2, 3, 4]) == 2.5. Odd-length medians and normal means are unchanged.",
+  "feedback_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "feedback_test_paths": [
+    "tests/test_stats.py"
+  ],
+  "id": "boundary_stats_002",
+  "notes": "Synthetic defect seeded for the VerifyLoop benchmark. Not a production incident.",
+  "reference_fix": "reference/fix.patch",
+  "reference_fix_sha256": "a5fda519544baa4b2ae33d5565e0645cc362d5277ede1e1f3507898859892887",
+  "repo_dir": "repo",
+  "synthetic": true,
+  "title": "Statistics helpers fail on empty and even-length input"
+}

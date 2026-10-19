@@ -1,0 +1,21 @@
+--- a/caching.py
++++ b/caching.py
+@@ -4,12 +4,16 @@
+ 
+ 
+ def memoize(func):
+-    """Cache results by positional arguments."""
++    """Cache results by positional and keyword arguments."""
+     cache = {}
+ 
+     @wraps(func)
+     def wrapper(*args, **kwargs):
+-        key = args
++        try:
++            key = (args, tuple(sorted(kwargs.items())))
++            hash(key)
++        except TypeError:
++            return func(*args, **kwargs)
+         if key in cache:
+             return cache[key]
+         value = func(*args, **kwargs)

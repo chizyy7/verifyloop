@@ -1,0 +1,30 @@
+{
+  "category": "multi_function",
+  "description": "caching.py provides a memoize decorator. Its cache key is built from positional arguments only, so calls that differ solely in keyword arguments return stale results. It also crashes when an argument is unhashable (for example a list). Fix memoize() so that keyword arguments participate in the key, calls with unhashable arguments are computed without caching, and cached calls still avoid re-invoking the wrapped function.",
+  "difficulty": "hard",
+  "eval_command": [
+    "python",
+    "-m",
+    "pytest",
+    "eval_tests",
+    "-q"
+  ],
+  "expected_behavior": "Calls differing only by kwargs produce distinct results. A list argument works and is not cached. Repeated identical calls invoke the function once.",
+  "feedback_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "feedback_test_paths": [
+    "tests/test_caching.py"
+  ],
+  "id": "multifunc_memoize_011",
+  "notes": "Synthetic defect seeded for the VerifyLoop benchmark. Not a production incident.",
+  "reference_fix": "reference/fix.patch",
+  "reference_fix_sha256": "dbc96841079afd47a1e25b118d262c4cfdae833c496588e5288817ec6df227bf",
+  "repo_dir": "repo",
+  "synthetic": true,
+  "title": "Memoization cache ignores keyword arguments"
+}

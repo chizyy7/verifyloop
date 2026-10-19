@@ -1,0 +1,30 @@
+{
+  "category": "sorting_filtering",
+  "description": "ranking.py sorts score records for a leaderboard. The intended order is score descending, and ties must be broken by name ascending. The current implementation puts both fields in one tuple key and reverses the whole tuple, so tied names come out descending as well. Fix the ordering while keeping the function pure and stable.",
+  "difficulty": "easy",
+  "eval_command": [
+    "python",
+    "-m",
+    "pytest",
+    "eval_tests",
+    "-q"
+  ],
+  "expected_behavior": "sort_records([{'name': 'b', 'score': 10}, {'name': 'a', 'score': 10}]) returns a before b; higher scores always come first.",
+  "feedback_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "feedback_test_paths": [
+    "tests/test_ranking.py"
+  ],
+  "id": "sorting_records_007",
+  "notes": "Synthetic defect seeded for the VerifyLoop benchmark. Not a production incident.",
+  "reference_fix": "reference/fix.patch",
+  "reference_fix_sha256": "9d5a7151e8272b1c6a1d99f16516da4dfad061f463188db010e1e6f17c2f5960",
+  "repo_dir": "repo",
+  "synthetic": true,
+  "title": "Descending sort also reverses the tie-breaker"
+}

@@ -1,0 +1,41 @@
+# --- secrets ---------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- verifyloop runtime ----------------------------------------------------
+outputs/*
+!outputs/.gitkeep
+*.db
+*.sqlite
+*.sqlite3
+verifyloop.db
+runs/
+workspaces/
+
+# --- local diagnostics -----------------------------------------------------
+*.log
+probe_payload.json
+
+# --- editors / os ----------------------------------------------------------
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

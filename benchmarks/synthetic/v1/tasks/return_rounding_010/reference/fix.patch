@@ -1,0 +1,13 @@
+--- a/money.py
++++ b/money.py
+@@ -1,6 +1,9 @@
+ """Monetary rounding helpers."""
++
++from decimal import Decimal, ROUND_HALF_UP
+ 
+ 
+ def round_cents(amount):
+     """Round ``amount`` to two decimal places using half-up rounding."""
+-    return round(amount, 2)
++    value = Decimal(str(amount)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
++    return float(value)

@@ -1,0 +1,30 @@
+--- a/inventory.py
++++ b/inventory.py
+@@ -7,14 +7,26 @@
+     def __init__(self):
+         self._stock = {}
+ 
++    @staticmethod
++    def _validate_quantity(quantity):
++        if isinstance(quantity, bool) or not isinstance(quantity, int):
++            raise TypeError("quantity must be an int")
++        if quantity <= 0:
++            raise ValueError("quantity must be positive")
++
+     def add(self, sku, quantity):
+         """Add ``quantity`` units of ``sku``."""
++        self._validate_quantity(quantity)
+         self._stock[sku] = self._stock.get(sku, 0) + quantity
+         return self._stock[sku]
+ 
+     def remove(self, sku, quantity):
+         """Remove ``quantity`` units of ``sku``."""
+-        self._stock[sku] = self._stock.get(sku, 0) - quantity
++        self._validate_quantity(quantity)
++        current = self._stock.get(sku, 0)
++        if current < quantity:
++            raise ValueError("insufficient stock for %s" % sku)
++        self._stock[sku] = current - quantity
+         return self._stock[sku]
+ 
+     def available(self, sku):

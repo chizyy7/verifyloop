@@ -1,0 +1,30 @@
+{
+  "category": "exception_handling",
+  "description": "resilience.py provides a retry decorator. Its docstring states that ``times`` is the total number of attempts, but the loop currently runs one attempt fewer than requested, so retry(times=1) never calls the function at all and retry(times=3) only makes two attempts. Fix the loop, preserve the behaviour that the last exception is re-raised when all attempts fail, and keep non-matching exceptions propagating immediately.",
+  "difficulty": "medium",
+  "eval_command": [
+    "python",
+    "-m",
+    "pytest",
+    "eval_tests",
+    "-q"
+  ],
+  "expected_behavior": "A function failing twice then succeeding succeeds under times=3 and is called 3 times. A function always raising is called exactly times times and the original exception type is raised.",
+  "feedback_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "feedback_test_paths": [
+    "tests/test_resilience.py"
+  ],
+  "id": "exception_retry_006",
+  "notes": "Synthetic defect seeded for the VerifyLoop benchmark. Not a production incident.",
+  "reference_fix": "reference/fix.patch",
+  "reference_fix_sha256": "7be6c489dec8e35f6bc611c25e49f148d009b89c25d300d0a3207ff9ed5f5c85",
+  "repo_dir": "repo",
+  "synthetic": true,
+  "title": "Retry decorator performs one attempt too few"
+}

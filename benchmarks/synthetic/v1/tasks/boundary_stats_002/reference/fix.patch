@@ -1,0 +1,22 @@
+--- a/stats.py
++++ b/stats.py
+@@ -3,11 +3,18 @@
+ 
+ def mean(values):
+     """Arithmetic mean of a non-empty sequence."""
++    values = list(values)
++    if not values:
++        raise ValueError("mean requires at least one value")
+     return sum(values) / len(values)
+ 
+ 
+ def median(values):
+     """Median of a non-empty sequence."""
+     ordered = sorted(values)
++    if not ordered:
++        raise ValueError("median requires at least one value")
+     middle = len(ordered) // 2
+-    return ordered[middle]
++    if len(ordered) % 2 == 1:
++        return ordered[middle]
++    return (ordered[middle - 1] + ordered[middle]) / 2
