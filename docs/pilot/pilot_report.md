@@ -160,6 +160,10 @@ pilot.
 
 Both fixes have regression tests. No scoring or task definition changed.
 
+Run 1 was recorded before the `budget_exhausted` fix, so its one-shot flag is a
+stale reporting artifact. Run 2, recorded after the fix, reports `false` for
+one-shot. The run-1 export is preserved unchanged rather than retroactively edited.
+
 **Tests after the changes:** `python -m pytest -q` → **165 passed in 169.24 s**.
 `python -m verifyloop smoke-test` → all three mock scenarios passed.
 
