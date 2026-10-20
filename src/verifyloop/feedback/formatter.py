@@ -38,6 +38,25 @@ EDIT_JSON_INSTRUCTIONS = """Output format: a single JSON object, nothing else.
 - Keep each edit minimal.
 """
 
+EDIT_JSON_SINGLE_INSTRUCTIONS = """Output format: exactly one JSON object and nothing else.
+{"file": "<path>", "search": "<exact existing text>", "replace": "<new text>"}
+- Exactly one edit. Do not use an "edits" list and do not add other keys.
+- `search` must match the file exactly, including indentation, and must occur once.
+- `replace` must differ from `search`.
+- Make the smallest possible change.
+"""
+
+
+def format_instructions(patch_format: str) -> str:
+    """Return the exact output contract for a patch format."""
+    if patch_format == "diff":
+        return DIFF_INSTRUCTIONS
+    if patch_format == "edit_json":
+        return EDIT_JSON_INSTRUCTIONS
+    if patch_format == "edit_json_single":
+        return EDIT_JSON_SINGLE_INSTRUCTIONS
+    raise ValueError(f"unsupported patch format: {patch_format}")
+
 
 def format_repository_context(files: dict[str, str], *, max_chars: int = 12_000) -> str:
     """Render source files for the prompt, truncating deterministically."""
@@ -63,7 +82,7 @@ def format_initial_prompt(
     repository_context: str,
     patch_format: str,
 ) -> str:
-    instructions = DIFF_INSTRUCTIONS if patch_format == "diff" else EDIT_JSON_INSTRUCTIONS
+    instructions = format_instructions(patch_format)
     return f"""## Bug report
 
 {task_description.strip()}
@@ -96,12 +115,16 @@ def format_evidence_report(evidence: FailureEvidence) -> str:
     if evidence.timed_out:
         lines.append("")
         lines.append("The test process exceeded its time limit and was terminated.")
-    if evidence.no_tests_collected:
+    if evidence.no_tests_collected or evidence.collection_failed:
         lines.append("")
         lines.append(
-            "No tests were collected. This usually means an import error or a syntax "
-            "error in the code you changed."
+            "Pytest could not collect the test suite. This usually means an import "
+            "error or a syntax error in the code you changed."
         )
+    if evidence.collection_error_excerpt:
+        lines.append("")
+        lines.append("### Collection error")
+        lines.extend(f"  | {line}" for line in evidence.collection_error_excerpt.splitlines())
     if evidence.infrastructure_error:
         lines.append("")
         lines.append(f"Harness reported an infrastructure problem: {evidence.infrastructure_message}")
@@ -161,7 +184,7 @@ def format_concise_report(evidence: FailureEvidence, status_listing: str) -> str
 
 def format_blind_retry_prompt(attempt: int, patch_format: str) -> str:
     """Feedback-free retry prompt for the blind-retry baseline."""
-    instructions = DIFF_INSTRUCTIONS if patch_format == "diff" else EDIT_JSON_INSTRUCTIONS
+    instructions = format_instructions(patch_format)
     return f"""Your previous patch was applied but did not pass the project's tests.
 
 Attempt number: {attempt}.
@@ -183,7 +206,7 @@ def format_patch_rejection(
     This is deliberately classified separately from a test failure: the model must
     fix the patch *format or scope*, not the program logic.
     """
-    instructions = DIFF_INSTRUCTIONS if patch_format == "diff" else EDIT_JSON_INSTRUCTIONS
+    instructions = format_instructions(patch_format)
     return f"""## Attempt {attempt}: patch rejected before execution
 
 Reason: {reason}
@@ -196,7 +219,7 @@ applies to the repository, then resubmit.
 
 
 def format_repair_prompt(feedback_block: str, patch_format: str) -> str:
-    instructions = DIFF_INSTRUCTIONS if patch_format == "diff" else EDIT_JSON_INSTRUCTIONS
+    instructions = format_instructions(patch_format)
     return f"""{feedback_block.strip()}
 
 ## Output

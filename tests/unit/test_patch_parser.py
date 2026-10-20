@@ -9,6 +9,7 @@ from verifyloop.patching.parser import (
     extract_patch_text,
     looks_like_diff,
     parse_edit_json,
+    parse_edit_json_single,
     parse_patch,
     parse_unified_diff,
 )
@@ -148,3 +149,49 @@ def test_new_file_diff() -> None:
     parsed = parse_unified_diff(text)
     assert parsed.files[0].is_new
     assert parsed.changed_files == ["newmod.py"]
+
+
+def test_edit_json_single_parsing() -> None:
+    edits = parse_edit_json_single(
+        '{"file": "app.py", "search": "a - b", "replace": "a + b"}'
+    )
+    assert len(edits) == 1
+    assert edits[0].file == "app.py"
+    assert edits[0].search == "a - b"
+
+
+def test_edit_json_single_accepts_json_fence_and_prose() -> None:
+    text = 'Here is the patch:\n```json\n{"file": "app.py", "search": "x", "replace": "y"}\n```'
+    edits = parse_edit_json_single(text)
+    assert edits[0].replace == "y"
+
+
+def test_edit_json_single_rejects_edit_list() -> None:
+    with pytest.raises(PatchParseError, match="missing keys"):
+        parse_edit_json_single(
+            '{"edits": [{"file": "app.py", "search": "x", "replace": "y"}]}'
+        )
+
+
+def test_edit_json_single_rejects_extra_keys() -> None:
+    with pytest.raises(PatchParseError, match="unexpected keys"):
+        parse_edit_json_single(
+            '{"file": "app.py", "search": "x", "replace": "y", "why": "because"}'
+        )
+
+
+def test_edit_json_single_rejects_noop_replacement() -> None:
+    with pytest.raises(PatchParseError, match="identical"):
+        parse_edit_json_single(
+            '{"file": "app.py", "search": "x", "replace": "x"}'
+        )
+
+
+def test_parse_patch_dispatches_single_format() -> None:
+    candidate, parsed = parse_patch(
+        '{"file": "app.py", "search": "x", "replace": "y"}',
+        "edit_json_single",
+    )
+    assert candidate.format == "edit_json_single"
+    assert candidate.changed_files == ["app.py"]
+    assert len(parsed) == 1

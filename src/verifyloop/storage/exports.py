@@ -22,6 +22,18 @@ CSV_COLUMNS = [
     "outcome",
     "verified_success",
     "attempt_count",
+    "attempts_with_model_response",
+    "attempts_patch_format_parsed",
+    "attempts_applicability_validated",
+    "attempts_patch_applied",
+    "attempts_tests_collected",
+    "attempts_tests_executed",
+    "attempts_tests_passed",
+    "attempts_tests_failed",
+    "attempts_evidence_delivered",
+    "attempts_with_collection_error",
+    "test_reachability",
+    "first_failure_stage",
     "model_calls",
     "prompt_tokens",
     "completion_tokens",
@@ -38,7 +50,58 @@ CSV_COLUMNS = [
 ]
 
 
+def _diagnostics(result: dict[str, Any]) -> dict[str, Any]:
+    diagnostics = result.get("diagnostics")
+    if isinstance(diagnostics, dict):
+        return diagnostics
+    # Older exports predate stage diagnostics. Derive only what is explicitly
+    # present in those records; never infer model-response or evidence delivery.
+    attempts = result.get("attempts") or []
+    return {
+        "attempts_with_model_response": 0,
+        "attempts_patch_format_parsed": sum(
+            bool(attempt.get("patch")) for attempt in attempts
+        ),
+        "attempts_applicability_validated": sum(
+            bool((attempt.get("validation") or {}).get("ok")) for attempt in attempts
+        ),
+        "attempts_patch_applied": sum(
+            bool(attempt.get("applied")) for attempt in attempts
+        ),
+        "attempts_tests_collected": sum(
+            bool((attempt.get("test_report") or {}).get("total"))
+            for attempt in attempts
+        ),
+        "attempts_tests_executed": sum(
+            bool((attempt.get("test_report") or {}).get("total"))
+            for attempt in attempts
+        ),
+        "attempts_tests_passed": sum(
+            bool((attempt.get("test_report") or {}).get("all_passed"))
+            for attempt in attempts
+        ),
+        "attempts_tests_failed": sum(
+            bool(
+                (attempt.get("test_report") or {}).get("total")
+                and not (attempt.get("test_report") or {}).get("all_passed")
+            )
+            for attempt in attempts
+        ),
+        "attempts_evidence_delivered": 0,
+        "attempts_with_collection_error": sum(
+            bool((attempt.get("test_report") or {}).get("collection_error_excerpt"))
+            for attempt in attempts
+        ),
+        "test_reachability": any(
+            bool((attempt.get("test_report") or {}).get("total"))
+            for attempt in attempts
+        ),
+        "first_failure_stage": "",
+    }
+
+
 def _flat_row(result: dict[str, Any]) -> dict[str, Any]:
+    diagnostics = _diagnostics(result)
     return {
         "run_id": result.get("run_id", ""),
         "task_id": result.get("task_id", ""),
@@ -50,6 +113,28 @@ def _flat_row(result: dict[str, Any]) -> dict[str, Any]:
         "outcome": result.get("outcome", ""),
         "verified_success": int(result.get("outcome") == "verified_success"),
         "attempt_count": result.get("attempt_count", 0),
+        "attempts_with_model_response": diagnostics.get(
+            "attempts_with_model_response", 0
+        ),
+        "attempts_patch_format_parsed": diagnostics.get(
+            "attempts_patch_format_parsed", 0
+        ),
+        "attempts_applicability_validated": diagnostics.get(
+            "attempts_applicability_validated", 0
+        ),
+        "attempts_patch_applied": diagnostics.get("attempts_patch_applied", 0),
+        "attempts_tests_collected": diagnostics.get("attempts_tests_collected", 0),
+        "attempts_tests_executed": diagnostics.get("attempts_tests_executed", 0),
+        "attempts_tests_passed": diagnostics.get("attempts_tests_passed", 0),
+        "attempts_tests_failed": diagnostics.get("attempts_tests_failed", 0),
+        "attempts_evidence_delivered": diagnostics.get(
+            "attempts_evidence_delivered", 0
+        ),
+        "attempts_with_collection_error": diagnostics.get(
+            "attempts_with_collection_error", 0
+        ),
+        "test_reachability": int(bool(diagnostics.get("test_reachability"))),
+        "first_failure_stage": diagnostics.get("first_failure_stage", ""),
         "model_calls": result.get("model_calls", 0),
         "prompt_tokens": result.get("prompt_tokens", 0),
         "completion_tokens": result.get("completion_tokens", 0),

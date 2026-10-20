@@ -377,3 +377,116 @@ def test_hidden_tests_never_appear_in_prompts(task, reference_patch) -> None:
         assert "eval_tests" not in combined
         assert "test_eval_paging" not in combined
         assert "reference/fix.patch" not in combined
+
+
+def test_diagnostics_track_successful_pipeline(task, reference_patch) -> None:
+    result = make_controller(
+        task, [MockResponse(text=reference_patch)], strategy="oneshot"
+    ).run()
+    assert result.outcome is Outcome.VERIFIED_SUCCESS
+    attempt = result.attempts[0]
+    assert attempt.diagnostics.model_response_received
+    assert attempt.diagnostics.patch_format_parsed
+    assert attempt.diagnostics.applicability_checked
+    assert attempt.diagnostics.applicability_validated
+    assert attempt.diagnostics.patch_applied
+    assert attempt.diagnostics.tests_collected
+    assert attempt.diagnostics.tests_executed
+    assert attempt.diagnostics.tests_passed
+    assert not attempt.diagnostics.tests_failed
+    assert attempt.diagnostics.test_outcome == "passed"
+    assert attempt.diagnostics.failure_stage == ""
+    summary = result.to_dict()["diagnostics"]
+    assert summary["attempts_patch_applied"] == 1
+    assert summary["test_reachability"] is True
+    assert summary["attempts_with_collection_error"] == 0
+
+
+def test_diagnostics_track_format_failure(task) -> None:
+    result = make_controller(
+        task, [MockResponse(text="I cannot produce a patch.")],
+        strategy="oneshot", max_attempts=1,
+    ).run()
+    attempt = result.attempts[0]
+    assert attempt.diagnostics.model_response_received
+    assert not attempt.diagnostics.patch_format_parsed
+    assert attempt.diagnostics.failure_stage == "patch_format"
+    assert result.diagnostics_summary()["first_failure_stage"] == "patch_format"
+
+
+def test_diagnostics_track_application_conflict(task) -> None:
+    bad_patch = """--- a/paging.py
++++ b/paging.py
+@@ -1,1 +1,1 @@
+-this context does not exist anywhere
++replaced
+"""
+    result = make_controller(
+        task, [MockResponse(text=bad_patch)],
+        strategy="oneshot", max_attempts=1,
+    ).run()
+    attempt = result.attempts[0]
+    assert attempt.diagnostics.patch_format_parsed
+    assert attempt.diagnostics.applicability_validated
+    assert not attempt.diagnostics.patch_applied
+    assert attempt.diagnostics.failure_stage == "patch_application"
+
+
+def test_evidence_delivery_is_recorded_for_evidence_condition(
+    task, reference_patch
+) -> None:
+    result = make_controller(
+        task,
+        [MockResponse(text=broken_variant(reference_patch)),
+         MockResponse(text=reference_patch)],
+        strategy="evidence_guided",
+    ).run()
+    first = result.attempts[0]
+    assert first.diagnostics.evidence_delivered
+    assert first.diagnostics.evidence_kind == "structured"
+    assert len(first.diagnostics.evidence_prompt_sha256) == 64
+    assert first.diagnostics.evidence_prompt_chars > 0
+    assert result.feedback_reports
+
+
+def test_blind_retry_records_no_evidence_delivery(task, reference_patch) -> None:
+    result = make_controller(
+        task,
+        [MockResponse(text=broken_variant(reference_patch)),
+         MockResponse(text=reference_patch)],
+        strategy="blind_retry",
+    ).run()
+    assert not result.attempts[0].diagnostics.evidence_delivered
+    assert result.feedback_reports == []
+
+
+def test_collection_failure_reaches_evidence_prompt(task) -> None:
+    syntax_break = (
+        '{"file": "paging.py", "search": "    return list(items[start:end])", '
+        '"replace": "    return list(items[start:end]"}'
+    )
+    repair = (
+        '{"file": "paging.py", "search": "    end = start + per_page - 1", '
+        '"replace": "    end = start + per_page"}'
+    )
+    result = make_controller(
+        task,
+        [MockResponse(text=syntax_break), MockResponse(text=repair)],
+        strategy="evidence_guided",
+        max_attempts=2,
+        patch_format="edit_json_single",
+    ).run()
+
+    first = result.attempts[0]
+    assert first.applied
+    assert first.test_report is not None
+    assert first.test_report.collection_failed
+    assert first.test_report.collection_error_excerpt
+    assert first.diagnostics.failure_stage == "test_collection"
+    assert first.diagnostics.evidence_delivered
+    assert "Collection error" in result.feedback_reports[0]
+    assert "SyntaxError" in result.feedback_reports[0]
+    assert result.attempts[1].diagnostics.tests_executed
+    summary = result.to_dict()["diagnostics"]
+    assert summary["attempts_with_collection_error"] == 1
+    assert summary["attempts_tests_collected"] == 1

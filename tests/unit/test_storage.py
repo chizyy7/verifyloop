@@ -112,6 +112,9 @@ def test_export_csv_has_stable_columns(tmp_path: Path) -> None:
     header = path.read_text(encoding="utf-8").splitlines()[0]
     assert "wall_clock_seconds" in header
     assert "failure_category" in header
+    assert "test_reachability" in header
+    assert "attempts_patch_applied" in header
+    assert "attempts_with_collection_error" in header
 
 
 def test_export_summary(tmp_path: Path) -> None:

@@ -76,6 +76,9 @@ class TestReport:
     cases: list[TestCaseResult] = field(default_factory=list)
     stdout: str = ""
     stderr: str = ""
+    #: Bounded, redacted excerpt of a pytest collection error. Empty when no
+    #: recognizable collection failure was present.
+    collection_error_excerpt: str = ""
     timed_out: bool = False
     infrastructure_error: bool = False
     infrastructure_message: str = ""
@@ -116,6 +119,18 @@ class TestReport:
     def no_tests_collected(self) -> bool:
         return self.total == 0 and not self.infrastructure_error
 
+    @property
+    def collection_failed(self) -> bool:
+        """True when pytest reported a collection error.
+
+        JUnit XML sometimes emits one synthetic error case for a collection failure,
+        so ``total`` alone cannot distinguish this from a test that ran and failed.
+        The console excerpt is the reliable signal.
+        """
+        return bool(self.collection_error_excerpt) and not (
+            self.timed_out or self.infrastructure_error
+        )
+
     def failing_cases(self) -> list[TestCaseResult]:
         return [case for case in self.cases if case.status in {"failed", "error"}]
 
@@ -146,6 +161,8 @@ class TestReport:
             "infrastructure_message": self.infrastructure_message,
             "all_passed": self.all_passed,
             "no_tests_collected": self.no_tests_collected,
+            "collection_failed": self.collection_failed,
+            "collection_error_excerpt": self.collection_error_excerpt,
             "cases": [case.to_dict() for case in self.cases],
         }
         if include_output:
@@ -159,7 +176,7 @@ class PatchCandidate:
     """A parsed, not-yet-applied patch."""
 
     raw: str
-    format: str  # "diff" | "edit_json"
+    format: str  # "diff" | "edit_json" | "edit_json_single"
     changed_files: list[str] = field(default_factory=list)
     size_bytes: int = 0
     sha256: str = ""
@@ -188,6 +205,59 @@ class ValidationResult:
 
 
 @dataclass
+class AttemptDiagnostics:
+    """Stage-by-stage outcome of one repair attempt.
+
+    These flags exist because "the patch was rejected" is not a single failure mode.
+    A model can return no usable response, return text that is not a patch, return a
+    patch that cannot be validated, return a patch that cannot be applied, or return
+    a patch that applies but prevents pytest from collecting or executing tests.
+    Recording each stage separately makes those cases auditable instead of collapsing
+    them into one rejection count.
+    """
+
+    model_response_received: bool = False
+    patch_format_parsed: bool = False
+    applicability_checked: bool = False
+    applicability_validated: bool = False
+    patch_applied: bool = False
+    tests_collected: bool = False
+    tests_executed: bool = False
+    tests_passed: bool = False
+    tests_failed: bool = False
+    evidence_delivered: bool = False
+    evidence_kind: str = ""
+    evidence_prompt_sha256: str = ""
+    evidence_prompt_chars: int = 0
+    #: not_run | collection_error | timeout | infrastructure_error | passed | failed
+    test_outcome: str = "not_run"
+    #: model_response | patch_format | patch_validation | patch_application |
+    #: test_collection | test_execution | test_result | (empty for success)
+    failure_stage: str = ""
+    detail: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "model_response_received": self.model_response_received,
+            "patch_format_parsed": self.patch_format_parsed,
+            "applicability_checked": self.applicability_checked,
+            "applicability_validated": self.applicability_validated,
+            "patch_applied": self.patch_applied,
+            "tests_collected": self.tests_collected,
+            "tests_executed": self.tests_executed,
+            "tests_passed": self.tests_passed,
+            "tests_failed": self.tests_failed,
+            "evidence_delivered": self.evidence_delivered,
+            "evidence_kind": self.evidence_kind,
+            "evidence_prompt_sha256": self.evidence_prompt_sha256,
+            "evidence_prompt_chars": self.evidence_prompt_chars,
+            "test_outcome": self.test_outcome,
+            "failure_stage": self.failure_stage,
+            "detail": self.detail,
+        }
+
+
+@dataclass
 class AttemptRecord:
     """Everything that happened in one generate → validate → test cycle."""
 
@@ -206,6 +276,7 @@ class AttemptRecord:
     #: Exact model text, truncated by the controller. Kept so that format
     #: failures can be analysed after the run instead of only counted.
     raw_output: str = ""
+    diagnostics: AttemptDiagnostics = field(default_factory=AttemptDiagnostics)
 
     def to_dict(self, *, include_output: bool = False) -> dict[str, Any]:
         return {
@@ -235,6 +306,7 @@ class AttemptRecord:
             "rejected_reason": self.rejected_reason,
             "model_error": self.model_error,
             "raw_output": self.raw_output,
+            "diagnostics": self.diagnostics.to_dict(),
         }
 
 
@@ -271,6 +343,65 @@ class TaskResult:
     def total_tokens(self) -> int:
         return self.prompt_tokens + self.completion_tokens
 
+    def diagnostics_summary(self) -> dict[str, Any]:
+        """Aggregate attempt-stage outcomes for analysis and CSV export.
+
+        Counts are attempts, not tests. ``test_reachability`` means at least one
+        attempt applied a patch and actually executed a non-empty test suite.
+        """
+        attempts = self.attempts
+        first_failure = next(
+            (
+                attempt.diagnostics.failure_stage
+                for attempt in attempts
+                if attempt.diagnostics.failure_stage
+            ),
+            "",
+        )
+        return {
+            "attempts_with_model_response": sum(
+                attempt.diagnostics.model_response_received for attempt in attempts
+            ),
+            "attempts_patch_format_parsed": sum(
+                attempt.diagnostics.patch_format_parsed for attempt in attempts
+            ),
+            "attempts_applicability_checked": sum(
+                attempt.diagnostics.applicability_checked for attempt in attempts
+            ),
+            "attempts_applicability_validated": sum(
+                attempt.diagnostics.applicability_validated for attempt in attempts
+            ),
+            "attempts_patch_applied": sum(
+                attempt.diagnostics.patch_applied for attempt in attempts
+            ),
+            "attempts_tests_collected": sum(
+                attempt.diagnostics.tests_collected for attempt in attempts
+            ),
+            "attempts_tests_executed": sum(
+                attempt.diagnostics.tests_executed for attempt in attempts
+            ),
+            "attempts_tests_passed": sum(
+                attempt.diagnostics.tests_passed for attempt in attempts
+            ),
+            "attempts_tests_failed": sum(
+                attempt.diagnostics.tests_failed for attempt in attempts
+            ),
+            "attempts_evidence_delivered": sum(
+                attempt.diagnostics.evidence_delivered for attempt in attempts
+            ),
+            "attempts_with_collection_error": sum(
+                bool(
+                    attempt.test_report
+                    and attempt.test_report.collection_error_excerpt
+                )
+                for attempt in attempts
+            ),
+            "first_failure_stage": first_failure,
+            "test_reachability": any(
+                attempt.diagnostics.tests_executed for attempt in attempts
+            ),
+        }
+
     def to_dict(self, *, include_output: bool = False) -> dict[str, Any]:
         return {
             "run_id": self.run_id,
@@ -285,6 +416,7 @@ class TaskResult:
             "attempts": [
                 attempt.to_dict(include_output=include_output) for attempt in self.attempts
             ],
+            "diagnostics": self.diagnostics_summary(),
             "feedback_reports": list(self.feedback_reports),
             "final_report": (
                 self.final_report.to_dict(include_output=include_output)

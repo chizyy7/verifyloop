@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from typing import Iterable, Sequence
 
 from verifyloop.models import FailureCategory, TestCaseResult, TestReport
+from verifyloop.redaction import redact_text
 
 MAX_MESSAGE_CHARS = 500
 MAX_TOTAL_MESSAGE_CHARS = 2_500
@@ -45,8 +46,10 @@ class FailureEvidence:
     category: FailureCategory = FailureCategory.UNKNOWN
     timed_out: bool = False
     no_tests_collected: bool = False
+    collection_failed: bool = False
     infrastructure_error: bool = False
     infrastructure_message: str = ""
+    collection_error_excerpt: str = ""
     exit_code: int = 0
 
     def to_dict(self) -> dict:
@@ -65,8 +68,10 @@ class FailureEvidence:
             "category": self.category.value,
             "timed_out": self.timed_out,
             "no_tests_collected": self.no_tests_collected,
+            "collection_failed": self.collection_failed,
             "infrastructure_error": self.infrastructure_error,
             "infrastructure_message": self.infrastructure_message,
+            "collection_error_excerpt": self.collection_error_excerpt,
             "exit_code": self.exit_code,
         }
 
@@ -107,7 +112,7 @@ def build_evidence(
     entries: list[dict[str, str]] = []
     total_chars = 0
     for case in failing[:MAX_TESTS_LISTED]:
-        excerpt = _traceback_excerpt(case)
+        excerpt = redact_text(_traceback_excerpt(case))
         if total_chars + len(excerpt) > MAX_TOTAL_MESSAGE_CHARS:
             excerpt = excerpt[: max(0, MAX_TOTAL_MESSAGE_CHARS - total_chars)]
         total_chars += len(excerpt)
@@ -115,7 +120,7 @@ def build_evidence(
             {
                 "test": case.name,
                 "status": case.status,
-                "message": _clip(case.message),
+                "message": _clip(redact_text(case.message)),
                 "traceback_excerpt": excerpt,
             }
         )
@@ -142,8 +147,10 @@ def build_evidence(
         category=resolved_category,
         timed_out=report.timed_out,
         no_tests_collected=report.no_tests_collected,
+        collection_failed=report.collection_failed,
         infrastructure_error=report.infrastructure_error,
         infrastructure_message=report.infrastructure_message,
+        collection_error_excerpt=report.collection_error_excerpt,
         exit_code=report.exit_code,
     )
 

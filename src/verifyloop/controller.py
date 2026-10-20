@@ -337,6 +337,40 @@ class RepairController:
             )
             record.test_report = report
             self.result.test_seconds += report.duration_seconds
+            collection_failed = report.collection_failed or report.total == 0
+            record.diagnostics.tests_collected = (
+                report.total > 0 and not collection_failed
+            )
+            record.diagnostics.tests_executed = (
+                report.total > 0
+                and not collection_failed
+                and not report.timed_out
+                and not report.infrastructure_error
+            )
+
+            if report.all_passed:
+                record.diagnostics.tests_passed = True
+                record.diagnostics.test_outcome = "passed"
+            elif report.timed_out:
+                record.diagnostics.test_outcome = "timeout"
+                record.diagnostics.failure_stage = "test_execution"
+                record.diagnostics.detail = report.summary_line()
+            elif report.infrastructure_error:
+                record.diagnostics.test_outcome = "infrastructure_error"
+                record.diagnostics.failure_stage = "test_execution"
+                record.diagnostics.detail = report.infrastructure_message
+            elif collection_failed:
+                record.diagnostics.test_outcome = "collection_error"
+                record.diagnostics.failure_stage = "test_collection"
+                record.diagnostics.detail = (
+                    report.collection_error_excerpt.splitlines()[0]
+                    if report.collection_error_excerpt
+                    else "no tests collected"
+                )
+            else:
+                record.diagnostics.tests_failed = True
+                record.diagnostics.test_outcome = "failed"
+                record.diagnostics.failure_stage = "test_result"
 
             if report.infrastructure_error:
                 self.result.outcome = Outcome.INFRASTRUCTURE_ERROR
@@ -401,6 +435,17 @@ class RepairController:
             )
             if self.strategy.uses_evidence:
                 self.result.feedback_reports.append(prompt)
+                record.diagnostics.evidence_delivered = True
+                record.diagnostics.evidence_kind = (
+                    "concise"
+                    if self.strategy.name == "concise_feedback"
+                    else "structured"
+                )
+                encoded_prompt = prompt.encode("utf-8")
+                record.diagnostics.evidence_prompt_sha256 = hashlib.sha256(
+                    encoded_prompt
+                ).hexdigest()
+                record.diagnostics.evidence_prompt_chars = len(prompt)
             attempt += 1
             workspace.reset()
 
@@ -436,6 +481,8 @@ class RepairController:
             )
         except ProviderError as exc:
             record.model_error = str(exc)
+            record.diagnostics.failure_stage = "model_response"
+            record.diagnostics.detail = str(exc)
             record.generation_seconds = time.monotonic() - started
             self.budget.record_call(
                 estimate_prompt_tokens(prompt), 0
@@ -444,6 +491,7 @@ class RepairController:
             self.result.prompt_tokens += estimate_prompt_tokens(prompt)
             return record
 
+        record.diagnostics.model_response_received = True
         record.generation_seconds = time.monotonic() - started
         record.raw_output = completion.text[: self.config.budgets.max_output_chars]
         prompt_tokens = (
@@ -469,9 +517,12 @@ class RepairController:
         except PatchParseError as exc:
             record.rejected_reason = str(exc)
             record.failure_category = exc.category
+            record.diagnostics.failure_stage = "patch_format"
+            record.diagnostics.detail = str(exc)
             return record
 
         record.patch = candidate
+        record.diagnostics.patch_format_parsed = True
         validation = validate_patch(
             parsed,
             workspace.root,
@@ -480,10 +531,14 @@ class RepairController:
             raw_size_bytes=candidate.size_bytes,
         )
         record.validation = validation
+        record.diagnostics.applicability_checked = True
         if not validation.ok:
             record.rejected_reason = validation.reason
             record.failure_category = validation.category
+            record.diagnostics.failure_stage = "patch_validation"
+            record.diagnostics.detail = validation.reason
             return record
+        record.diagnostics.applicability_validated = True
 
         self.machine.transition(State.PATCH_VALIDATION, reason=f"attempt {attempt}")
         before = workspace.snapshot()
@@ -491,12 +546,15 @@ class RepairController:
         if not apply_result.ok:
             record.rejected_reason = apply_result.reason
             record.failure_category = apply_result.category
+            record.diagnostics.failure_stage = "patch_application"
+            record.diagnostics.detail = apply_result.reason
             workspace.reset()
             return record
 
         after = workspace.snapshot()
         changes = diff_snapshots(before, after)
         record.applied = True
+        record.diagnostics.patch_applied = True
         record.patch.changed_files = sorted(
             changes["added"] + changes["modified"]
         )

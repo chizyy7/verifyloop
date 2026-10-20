@@ -1,0 +1,31 @@
+{
+  "comparisons": [],
+  "strategies": {
+    "oneshot": {
+      "budget_exhausted": 0,
+      "failure_categories": {
+        "none": 1,
+        "unknown": 2
+      },
+      "infrastructure_failures": 0,
+      "invalid_tasks": 0,
+      "mean_attempts": 1.0,
+      "mean_model_calls": 1.0,
+      "mean_tokens": 483.3333333333333,
+      "mean_wall_clock": 22.458333333333332,
+      "median_attempts": 1,
+      "median_wall_clock": 22.781,
+      "patch_rejections": 0,
+      "regression_free_rate": 0.3333333333333333,
+      "regressions": 0,
+      "strategy": "oneshot",
+      "valid_tasks": 3,
+      "verified_ci_lower": 0.061490315276160515,
+      "verified_ci_upper": 0.7923450448735121,
+      "verified_rate": 0.3333333333333333,
+      "verified_successes": 1,
+      "visible_only_successes": 0
+    }
+  },
+  "total_results": 3
+}

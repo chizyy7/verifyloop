@@ -7,7 +7,12 @@ from pathlib import Path
 import pytest
 
 from verifyloop.patching.applier import apply_edits, apply_patch, apply_unified_diff
-from verifyloop.patching.parser import Edit, parse_edit_json, parse_unified_diff
+from verifyloop.patching.parser import (
+    Edit,
+    parse_edit_json,
+    parse_edit_json_single,
+    parse_unified_diff,
+)
 
 
 @pytest.fixture()
@@ -151,6 +156,14 @@ def test_apply_patch_dispatches(repo: Path) -> None:
         '{"edits": [{"file": "app.py", "search": "return a - b", "replace": "return a + b"}]}'
     )
     assert apply_patch(edits, repo).ok
+
+
+def test_apply_patch_dispatches_single_edit(repo: Path) -> None:
+    edits = parse_edit_json_single(
+        '{"file": "app.py", "search": "return a - b", "replace": "return a + b"}'
+    )
+    assert apply_patch(edits, repo).ok
+    assert "return a + b" in (repo / "app.py").read_text(encoding="utf-8")
 
 
 def test_ambiguous_context_rejected(tmp_path: Path) -> None:

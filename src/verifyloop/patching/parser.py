@@ -1,6 +1,6 @@
 """Extraction and parsing of model-produced patches.
 
-Two accepted formats:
+Three accepted formats:
 
 ``diff``
     A unified diff, optionally wrapped in a fenced code block and optionally preceded
@@ -9,6 +9,12 @@ Two accepted formats:
 ``edit_json``
     A JSON object ``{"edits": [{"file": ..., "search": ..., "replace": ...}]}``.
     Simpler for small models to produce correctly than a hand-written diff.
+
+``edit_json_single``
+    A stricter, minimal form: exactly one object with exactly one ``file``, one
+    exact ``search`` string, and one ``replace`` string. No edit list, no extra
+    keys. It removes overlapping-edit and multi-file failure modes while keeping the
+    same applier and applicability rules as ``edit_json``.
 
 Parsing never touches the filesystem, so it is safe to call on untrusted output.
 """
@@ -79,7 +85,9 @@ class Edit:
     replace: str
 
 
-_FENCE_RE = re.compile(r"```(?:diff|patch)?\s*\n(.*?)```", re.DOTALL | re.IGNORECASE)
+_FENCE_RE = re.compile(
+    r"```(?:diff|patch|json)?\s*\n(.*?)```", re.DOTALL | re.IGNORECASE
+)
 _HUNK_RE = re.compile(r"^@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@")
 _DIFF_HEADER_RE = re.compile(r"^diff --git a/(.+?) b/(.+?)$")
 
@@ -118,6 +126,19 @@ def looks_like_diff(text: str) -> bool:
 def looks_like_json(text: str) -> bool:
     stripped = text.strip()
     return stripped.startswith("{") and stripped.endswith("}")
+
+
+def _extract_json_body(text: str) -> str:
+    """Tolerate a fenced block or a short prose prefix before the JSON object."""
+    body = extract_patch_text(text)
+    stripped = body.strip()
+    if stripped.startswith("{") and stripped.endswith("}"):
+        return stripped
+    start = body.find("{")
+    end = body.rfind("}")
+    if start != -1 and end > start:
+        return body[start : end + 1].strip()
+    return stripped
 
 
 # ---------------------------------------------------------------------------
@@ -241,7 +262,7 @@ def _validate_hunk_arithmetic(file_patch: FilePatch) -> None:
 
 def parse_edit_json(text: str) -> list[Edit]:
     """Parse the ``edit_json`` format into a list of search/replace edits."""
-    body = extract_patch_text(text)
+    body = _extract_json_body(text)
     try:
         payload = json.loads(body)
     except json.JSONDecodeError as exc:
@@ -271,17 +292,66 @@ def parse_edit_json(text: str) -> list[Edit]:
     return edits
 
 
+def parse_edit_json_single(text: str) -> list[Edit]:
+    """Parse the strict single-edit format into exactly one :class:`Edit`.
+
+    The strictness is the point: a small model that tries to bundle several edits
+    can produce overlapping or stale search strings. Requiring one exact edit makes
+    the patch-evaluation contract unambiguous. It is a separate format, not a
+    silent reinterpretation of ``edit_json``.
+    """
+    body = _extract_json_body(text)
+    try:
+        payload = json.loads(body)
+    except json.JSONDecodeError as exc:
+        raise PatchParseError(
+            f"edit_json_single is not valid JSON: {exc.msg}"
+        ) from exc
+
+    if not isinstance(payload, dict):
+        raise PatchParseError("edit_json_single root must be an object")
+    expected = {"file", "search", "replace"}
+    missing = expected - set(payload)
+    if missing:
+        raise PatchParseError(
+            "edit_json_single missing keys: " + ", ".join(sorted(missing))
+        )
+    extra = set(payload) - expected
+    if extra:
+        raise PatchParseError(
+            "edit_json_single has unexpected keys: " + ", ".join(sorted(extra))
+        )
+
+    file_name, search, replace = (
+        payload["file"],
+        payload["search"],
+        payload["replace"],
+    )
+    if not all(isinstance(value, str) for value in (file_name, search, replace)):
+        raise PatchParseError("edit_json_single values must be strings")
+    if not file_name:
+        raise PatchParseError("edit_json_single has an empty file path")
+    if not search:
+        raise PatchParseError("edit_json_single has an empty search string")
+    if search == replace:
+        raise PatchParseError("edit_json_single replacement is identical to search")
+    return [Edit(file=file_name, search=search, replace=replace)]
+
+
 def parse_patch(raw: str, patch_format: str = "diff") -> tuple[PatchCandidate, Any]:
     """Parse ``raw`` model output into a candidate plus a format-specific payload.
 
     Returns ``(candidate, parsed)`` where ``parsed`` is a :class:`ParsedDiff` for
-    diffs or ``list[Edit]`` for edit_json.
+    diffs or ``list[Edit]`` for the two edit_json variants.
     """
     if patch_format == "diff":
         parsed = parse_unified_diff(raw)
         changed = parsed.changed_files
     elif patch_format == "edit_json":
         parsed = parse_edit_json(raw)
+        changed = sorted({_normalize_diff_path(edit.file) for edit in parsed})
+    elif patch_format == "edit_json_single":
+        parsed = parse_edit_json_single(raw)
         changed = sorted({_normalize_diff_path(edit.file) for edit in parsed})
     else:
         raise PatchParseError(f"unsupported patch format: {patch_format}")

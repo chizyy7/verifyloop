@@ -145,7 +145,7 @@ class ExperimentConfig(BaseModel):
     # Order in which tasks are attempted. "fixed" uses manifest order.
     task_order: Literal["fixed", "shuffled"] = "fixed"
     # Patch exchange format requested from the model.
-    patch_format: Literal["diff", "edit_json"] = "diff"
+    patch_format: Literal["diff", "edit_json", "edit_json_single"] = "diff"
     output_dir: str = "outputs"
     notes: str = ""
 

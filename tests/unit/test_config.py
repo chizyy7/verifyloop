@@ -58,6 +58,11 @@ def test_unknown_strategy_rejected() -> None:
         ExperimentConfig(strategies=["oneshot", "magic"])
 
 
+def test_single_edit_patch_format_is_accepted() -> None:
+    config = ExperimentConfig(patch_format="edit_json_single")
+    assert config.patch_format == "edit_json_single"
+
+
 def test_duplicate_strategies_collapse() -> None:
     config = ExperimentConfig(strategies=["oneshot", "oneshot"])
     assert config.strategies == ["oneshot"]

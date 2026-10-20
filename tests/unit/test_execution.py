@@ -150,3 +150,55 @@ def test_syntax_error_classified(tmp_path: Path) -> None:
         limits=ExecutionLimits(timeout_seconds=60),
     )
     assert not report.all_passed
+
+
+def test_collection_error_excerpt_is_actionable(tmp_path: Path) -> None:
+    (tmp_path / "test_broken.py").write_text(
+        'raise RuntimeError("API_KEY=supersecret-value")\n', encoding="utf-8"
+    )
+    report = run_test_policy(
+        pytest_policy(["."], suite="feedback"),
+        tmp_path,
+        allowed_commands=["python"],
+        limits=ExecutionLimits(timeout_seconds=60),
+    )
+    assert report.collection_failed
+    assert report.collection_error_excerpt
+    assert "RuntimeError" in report.collection_error_excerpt
+    assert "supersecret-value" not in report.collection_error_excerpt
+    assert "***redacted***" in report.collection_error_excerpt
+    assert "site-packages" not in report.collection_error_excerpt
+    assert "test_broken.py" in report.collection_error_excerpt
+    assert categorize_failure(report).value == "collection_error"
+
+
+def test_collection_error_redacts_environment_secret(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("SERVICE_TOKEN", "env-secret-value")
+    (tmp_path / "test_broken.py").write_text(
+        'raise RuntimeError("env-secret-value")\n', encoding="utf-8"
+    )
+    report = run_test_policy(
+        pytest_policy(["."], suite="feedback"),
+        tmp_path,
+        allowed_commands=["python"],
+        limits=ExecutionLimits(timeout_seconds=60),
+    )
+    assert "env-secret-value" not in report.collection_error_excerpt
+    assert "***redacted***" in report.collection_error_excerpt
+
+
+def test_syntax_error_excerpt_contains_exception(tmp_path: Path) -> None:
+    (tmp_path / "test_syntax.py").write_text("def test(:\n", encoding="utf-8")
+    report = run_test_policy(
+        pytest_policy(["."], suite="feedback"),
+        tmp_path,
+        allowed_commands=["python"],
+        limits=ExecutionLimits(timeout_seconds=60),
+    )
+    assert report.collection_error_excerpt
+    assert "SyntaxError" in report.collection_error_excerpt
+    assert "site-packages" not in report.collection_error_excerpt
+    assert "C:\\Users" not in report.collection_error_excerpt
+    assert categorize_failure(report).value == "syntax_error"

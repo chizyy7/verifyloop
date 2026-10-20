@@ -1,0 +1,63 @@
+# Frozen preflight configuration: patch-format validity and test reachability.
+#
+# This is NOT a strategy comparison. It runs the same audited tasks under the same
+# model and one-shot condition, changing only the requested patch representation.
+# The purpose is to decide whether a later strategy comparison has enough test
+# reachability to be worth running.
+#
+# Tasks are a subset of the previously audited five-task pilot. exception_json_005
+# is excluded because its tmp_path suite showed a 97-120s slowdown on this machine;
+# that is an environment/timing confound, not a format property.
+#
+# Pre-declared interpretation rule (see docs/preflight/protocol_proposal.md):
+# a format is preflight-ready only if, across the three tasks, at least two patches
+# apply and at least two attempts execute a non-empty test suite, with no
+# infrastructure errors. The rule is applied identically to both formats.
+
+name: preflight-patch-formats-3task
+notes: >
+  Format-only preflight, 3 audited tasks x 2 patch representations x 1 one-shot
+  attempt on llama3.2:3b via Ollama. No strategy comparison; no significance claim.
+
+benchmark:
+  root: benchmarks/synthetic
+  version: v1
+  task_ids:
+    - return_missing_009
+    - sorting_records_007
+    - validation_age_003
+
+provider:
+  provider: ollama
+  model: llama3.2:3b
+  base_url: http://localhost:11434
+  request_timeout_seconds: 120
+  max_output_tokens: 700
+  temperature: 0.0
+  seed: 0
+
+budgets:
+  max_attempts: 1
+  max_model_calls: 1
+  max_total_tokens: 12000
+  max_wall_clock_seconds: 300
+  max_patch_bytes: 24000
+  max_output_chars: 6000
+  test_timeout_seconds: 120
+
+execution:
+  allowed_commands:
+    - python
+    - python3
+    - py
+    - pytest
+  workspace_root: null
+  keep_workspaces: false
+
+strategies:
+  - oneshot
+
+trials: 1
+task_order: fixed
+patch_format: edit_json
+output_dir: outputs/preflight

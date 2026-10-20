@@ -18,6 +18,7 @@ from pathlib import Path
 
 from verifyloop.execution.runner import RawExecution
 from verifyloop.models import FailureCategory, TestCaseResult, TestReport
+from verifyloop.redaction import redact_text
 
 # Documented pytest exit codes.
 PYTEST_EXIT_OK = 0
@@ -31,6 +32,105 @@ _COLLECTED_RE = re.compile(r"collected\s+(\d+)\s+item")
 _NO_TESTS_RE = re.compile(r"no tests ran", re.IGNORECASE)
 _ERRORS_RE = re.compile(r"^ERROR\s+(.+)$", re.MULTILINE)
 _FAILED_RE = re.compile(r"^(FAILED|ERROR)\s+(\S+)(?:\s+-\s+(.*))?$", re.MULTILINE)
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+_ABS_PY_PATH_RE = re.compile(r'[A-Za-z]:\\[^"\n]*?\\([^"\\/\n]+\.py)')
+_COLLECTION_NOISE = (
+    "site-packages",
+    "<frozen importlib",
+    "importlib._bootstrap",
+    "\\lib\\importlib",
+    "/lib/importlib",
+    "_pytest",
+    "pluggy",
+)
+
+MAX_COLLECTION_EXCERPT_CHARS = 2_400
+MAX_COLLECTION_EXCERPT_LINES = 40
+MAX_COLLECTION_LINE_CHARS = 400
+
+
+def _clean_collection_lines(lines: list[str]) -> list[str]:
+    """Remove harness/environment frames while keeping the actionable error."""
+    cleaned: list[str] = []
+    for line in lines:
+        lowered = line.lower()
+        stripped = line.strip()
+        if any(noise in lowered for noise in _COLLECTION_NOISE):
+            continue
+        if stripped.startswith(
+            (
+                "mod = import_path(",
+                "importlib.import_module(",
+                "return _bootstrap",
+                "exec(co, module.__dict__)",
+            )
+        ):
+            continue
+        if stripped in {"???", "..."}:
+            continue
+        cleaned.append(_ABS_PY_PATH_RE.sub(r"\1", line))
+    return cleaned
+
+
+def extract_collection_error(stdout: str, stderr: str) -> str:
+    """Return a bounded, redacted pytest collection-error excerpt.
+
+    The useful part of a collection failure is the ``ERRORS`` section: it contains
+    the import/syntax exception and the source line, unlike the JUnit XML element,
+    which usually only says ``collection failure``. We deliberately stop before the
+    short test summary and cap both line count and characters so unrelated console
+    output is not sent back to the model.
+    """
+    combined = _ANSI_RE.sub("", f"{stdout}\n{stderr}")
+    lines = combined.splitlines()
+    if not lines:
+        return ""
+
+    starts: list[int] = []
+    for index, line in enumerate(lines):
+        lowered = line.strip().lower()
+        if "error collecting" in lowered or "error during collection" in lowered:
+            # Include the ERRORS banner immediately above the collecting line when
+            # present, but do not treat every ERRORS section (e.g. teardown errors)
+            # as a collection failure.
+            start = index
+            for lookback in range(index - 1, max(-1, index - 4), -1):
+                candidate = lines[lookback].strip()
+                if candidate.startswith("====") and "errors" in candidate.lower():
+                    start = lookback
+                    break
+            starts.append(start)
+    if not starts:
+        return ""
+
+    start = min(starts)
+    end = len(lines)
+    for index in range(start + 1, len(lines)):
+        stripped = lines[index].strip()
+        lowered = stripped.lower()
+        if stripped.startswith("====") and "short test summary" in lowered:
+            end = index
+            break
+        if stripped.startswith("!!!!") and "interrupted" in lowered:
+            end = index + 1
+            break
+        if index - start >= MAX_COLLECTION_EXCERPT_LINES:
+            end = index
+            break
+
+    excerpt_lines = [
+        line[:MAX_COLLECTION_LINE_CHARS].rstrip()
+        for line in lines[start:end]
+        if line.strip()
+    ]
+    excerpt_lines = _clean_collection_lines(excerpt_lines)
+    if not excerpt_lines:
+        return ""
+    excerpt = redact_text("\n".join(excerpt_lines)).strip()
+    if len(excerpt) > MAX_COLLECTION_EXCERPT_CHARS:
+        excerpt = excerpt[: MAX_COLLECTION_EXCERPT_CHARS - 20].rstrip()
+        excerpt += "\n... [excerpt truncated]"
+    return excerpt
 
 
 def _parse_junit(path: Path) -> tuple[list[TestCaseResult], str]:
@@ -109,6 +209,7 @@ def _clip(text: str, limit: int = 1200) -> str:
 def classify_execution(raw: RawExecution, junit_path: Path | None = None) -> TestReport:
     """Build a :class:`TestReport` from a raw execution."""
     combined = f"{raw.stdout}\n{raw.stderr}"
+    collection_excerpt = extract_collection_error(raw.stdout, raw.stderr)
 
     if raw.timed_out:
         return TestReport(
@@ -117,6 +218,7 @@ def classify_execution(raw: RawExecution, junit_path: Path | None = None) -> Tes
             duration_seconds=raw.duration_seconds,
             stdout=raw.stdout,
             stderr=raw.stderr,
+            collection_error_excerpt=collection_excerpt,
             timed_out=True,
         )
 
@@ -127,6 +229,7 @@ def classify_execution(raw: RawExecution, junit_path: Path | None = None) -> Tes
             duration_seconds=raw.duration_seconds,
             stdout=raw.stdout,
             stderr=raw.stderr,
+            collection_error_excerpt=collection_excerpt,
             infrastructure_error=True,
             infrastructure_message=raw.launch_error,
         )
@@ -159,6 +262,7 @@ def classify_execution(raw: RawExecution, junit_path: Path | None = None) -> Tes
             cases=cases,
             stdout=raw.stdout,
             stderr=raw.stderr,
+            collection_error_excerpt=collection_excerpt,
             infrastructure_error=True,
             infrastructure_message=infra_message,
         )
@@ -170,6 +274,7 @@ def classify_execution(raw: RawExecution, junit_path: Path | None = None) -> Tes
         cases=cases,
         stdout=raw.stdout,
         stderr=raw.stderr,
+        collection_error_excerpt=collection_excerpt,
     )
 
 
@@ -201,12 +306,19 @@ def categorize_failure(report: TestReport) -> FailureCategory:
         return FailureCategory.TIMEOUT
     if report.infrastructure_error:
         return FailureCategory.ENVIRONMENT_ERROR
-    if report.total == 0:
-        text = f"{report.stdout}\n{report.stderr}"
-        if "error" in text.lower() and "collect" in text.lower():
-            return FailureCategory.COLLECTION_ERROR
+    if report.collection_failed:
+        text = f"{report.stdout}\n{report.stderr}\n{report.collection_error_excerpt}"
         if "SyntaxError" in text:
             return FailureCategory.SYNTAX_ERROR
+        if "ModuleNotFoundError" in text or "ImportError" in text:
+            return FailureCategory.IMPORT_ERROR
+        return FailureCategory.COLLECTION_ERROR
+    if report.total == 0:
+        text = f"{report.stdout}\n{report.stderr}"
+        if "SyntaxError" in text:
+            return FailureCategory.SYNTAX_ERROR
+        if "error" in text.lower() and "collect" in text.lower():
+            return FailureCategory.COLLECTION_ERROR
         return FailureCategory.NO_TESTS_COLLECTED
     if report.all_passed:
         return FailureCategory.NONE

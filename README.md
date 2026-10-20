@@ -24,15 +24,19 @@ evaluation.
 | Deterministic `mock` provider | Working (offline) |
 | Native Ollama provider | Working; exercised end-to-end with `llama3.2:3b` |
 | Real-model pilot | Two-run, five-task feasibility pilot completed; **1 verified success in 23 valid analyzed cells; the evidence contrast was not reliably exercised** |
+| Patch-format preflight | Completed; `edit_json_single` met the pre-declared test-reachability rule (3/3 applied, 3/3 reached tests); `edit_json` did not (1/3, 0/3) |
 | Streamlit dashboard | **Not implemented yet** |
 
-The full local suite currently passes: **165 tests** (unit, security, benchmark,
+The full local suite currently passes: **186 tests** (unit, security, benchmark,
 integration), measured on 2026-10-20.
 
 Mock-provider runs are pipeline demonstrations. They are **never** evidence about
 real-model behaviour. The five-task pilot and its raw exports are documented in
-[`docs/pilot/pilot_report.md`](docs/pilot/pilot_report.md); the earlier single-task
-integration check is in [`docs/ollama_integration.md`](docs/ollama_integration.md).
+[`docs/pilot/pilot_report.md`](docs/pilot/pilot_report.md); the patch-format /
+test-reachability preflight is in
+[`docs/preflight/preflight_report.md`](docs/preflight/preflight_report.md); the
+earlier single-task integration check is in
+[`docs/ollama_integration.md`](docs/ollama_integration.md).
 
 ---
 
@@ -274,6 +278,26 @@ categories, raw examples, limitations, and reproduction commands are in
 [`docs/pilot/analysis.md`](docs/pilot/analysis.md); the CSV/JSONL exports and run
 manifests are under [`docs/pilot/`](docs/pilot/).
 
+### Patch-format preflight (2026-10-20)
+
+Three audited tasks, one model, one one-shot attempt per task/format. This is a
+format/reachability check, not a strategy comparison.
+
+| Format | Parsed | Applied | Reached tests | Verified | Infrastructure errors |
+|---|---:|---:|---:|---:|---:|
+| `edit_json` | 3/3 | 1/3 | 0/3 | 0/3 | 0 |
+| `edit_json_single` | 3/3 | 3/3 | 3/3 | 1/3 | 0 |
+
+`edit_json_single` met the pre-declared stop rule; `edit_json` did not. The result
+supports freezing the single-edit representation for any future comparison, but it
+does **not** show that evidence-guided repair is better than blind retry or
+one-shot. The main strategy comparison was not launched. Collection failures now
+produce a bounded, redacted pytest excerpt (including the actual syntax/import error)
+instead of only “collection failure”. See
+[`docs/preflight/preflight_report.md`](docs/preflight/preflight_report.md) and
+[`docs/preflight/protocol_proposal.md`](docs/preflight/protocol_proposal.md) (the
+proposed, not-yet-run main-comparison parameters are in §7 of the protocol).
+
 ### Earlier integration check (single task)
 
 Pilot task: `boundary_paginate_001` (single-file off-by-one defect).
@@ -301,11 +325,13 @@ verifyloop/
 ├── config/
 │   ├── default.yaml              offline mock configuration
 │   ├── local_ollama.yaml         earlier single-task Ollama configuration
-│   └── pilot_ollama.yaml         frozen five-task pilot configuration
+│   ├── pilot_ollama.yaml         frozen five-task pilot configuration
+│   └── preflight_patch_formats.yaml  frozen format/reachability preflight
 ├── docs/
 │   ├── ollama_integration.md     earlier integration check and raw outputs
 │   ├── phase0_environment_report.md
-│   └── pilot/                    pilot report, analysis, CSV/JSONL exports, manifests
+│   ├── pilot/                    pilot report, analysis, CSV/JSONL exports, manifests
+│   └── preflight/                protocol, report, summary, CSV/JSONL, manifests
 ├── scripts/
 │   ├── build_benchmark.py        single source of truth for the corpus
 │   ├── validate_benchmark.py     benchmark contract gate
@@ -313,12 +339,14 @@ verifyloop/
 │   ├── probe_provider.py         thin wrapper over the diagnostics
 │   ├── audit_pilot_tasks.py      task/test suitability audit
 │   ├── preflight_pilot.py        OneDrive hydration + baseline preflight
+│   ├── preflight_patch_formats.py format validity + test reachability
 │   └── analyze_pilot.py          descriptive analysis of run JSONL
 ├── src/verifyloop/
 │   ├── benchmark/                manifest loading + integrity checks
 │   ├── execution/                allowlisted runner, JUnit parser, policies, workspace
-│   ├── patching/                 diff/edit_json parser, validator, tolerant applier
+│   ├── patching/                 diff/edit_json/edit_json_single parser + applier
 │   ├── feedback/                 evidence analyzer + prompt formatter
+│   ├── redaction.py              bounded secret redaction for evidence excerpts
 │   ├── strategies/               oneshot, blind_retry, evidence_guided, ablation
 │   ├── model_providers/          base, mock, Ollama, OpenAI-compatible, diagnostics
 │   ├── evaluation/               experiment runner + metrics
@@ -360,6 +388,9 @@ raw console logs and the SQLite database stay local.
   (`exception_json_005`) was excluded after a measured `tmp_path` slowdown.
 - Most analyzed patches were rejected before tests, so the evidence-guided
   contrast was rarely delivered; this pilot cannot rank the strategies.
+- The patch-format preflight uses three tasks and one trial per task/format. It
+  establishes test reachability for `edit_json_single`, not strategy superiority or
+  generality.
 - The 3B model was nondeterministic across runs despite a fixed seed, so single
   trials are unstable.
 - Inference is CPU-only on a 16 GB laptop. The 8B model could not allocate its

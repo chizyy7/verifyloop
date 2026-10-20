@@ -430,7 +430,9 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--trials", type=int)
     run.add_argument("--max-attempts", type=int)
     run.add_argument("--task-ids", nargs="+")
-    run.add_argument("--patch-format", choices=["diff", "edit_json"])
+    run.add_argument(
+        "--patch-format", choices=["diff", "edit_json", "edit_json_single"]
+    )
     run.add_argument(
         "--mock",
         action="store_true",

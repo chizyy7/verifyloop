@@ -1,0 +1,247 @@
+{
+  "config": "config/preflight_patch_formats.yaml",
+  "formats": [
+    {
+      "applied": 1,
+      "format": "edit_json",
+      "infrastructure_errors": 0,
+      "manifest_path": "outputs\\preflight_v3\\run-20261020-104426-e50202.manifest.json",
+      "parsed": 3,
+      "preflight_ready": false,
+      "run_id": "run-20261020-104426-e50202",
+      "task_count": 3,
+      "tasks": [
+        {
+          "applicability_validated": true,
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "applied": false,
+              "attempt": 1,
+              "collection_error_excerpt": "",
+              "failure_category": "patch_conflict",
+              "failure_stage": "patch_application",
+              "rejected_reason": "search text not found in diffing.py",
+              "test_outcome": "not_run"
+            }
+          ],
+          "collection_error_captured": false,
+          "collection_error_excerpt": "",
+          "error_message": "search text not found in diffing.py",
+          "evidence_delivered": false,
+          "first_failure_stage": "patch_application",
+          "format_parsed": true,
+          "generation_seconds": 23.063,
+          "model_calls": 1,
+          "model_response_received": true,
+          "outcome": "patch_rejected",
+          "patch_applied": false,
+          "task_id": "return_missing_009",
+          "test_reachability": false,
+          "test_seconds": 0.0,
+          "tests_collected": false,
+          "tests_executed": false,
+          "tests_failed": false,
+          "tests_passed": false,
+          "total_tokens": 542,
+          "wall_clock_seconds": 29.625
+        },
+        {
+          "applicability_validated": true,
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "applied": false,
+              "attempt": 1,
+              "collection_error_excerpt": "",
+              "failure_category": "patch_conflict",
+              "failure_stage": "patch_application",
+              "rejected_reason": "search text not found in ranking.py",
+              "test_outcome": "not_run"
+            }
+          ],
+          "collection_error_captured": false,
+          "collection_error_excerpt": "",
+          "error_message": "search text not found in ranking.py",
+          "evidence_delivered": false,
+          "first_failure_stage": "patch_application",
+          "format_parsed": true,
+          "generation_seconds": 12.813,
+          "model_calls": 1,
+          "model_response_received": true,
+          "outcome": "patch_rejected",
+          "patch_applied": false,
+          "task_id": "sorting_records_007",
+          "test_reachability": false,
+          "test_seconds": 0.0,
+          "tests_collected": false,
+          "tests_executed": false,
+          "tests_failed": false,
+          "tests_passed": false,
+          "total_tokens": 468,
+          "wall_clock_seconds": 20.437
+        },
+        {
+          "applicability_validated": true,
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "applied": true,
+              "attempt": 1,
+              "collection_error_excerpt": "=================================== ERRORS ====================================\n__________________ ERROR collecting tests/test_validation.py __________________\ntests\\test_validation.py:3: in <module>\n    from validation import validate_age\nE     File \"validation.py\", line 9\nE       raise ValueError if value > 150 else raise TypeError(\"age must be between 0 and 150\")\nE                                            ^^^^^\nE   SyntaxError: invalid syntax",
+              "failure_category": "syntax_error",
+              "failure_stage": "test_collection",
+              "rejected_reason": "",
+              "test_outcome": "collection_error"
+            }
+          ],
+          "collection_error_captured": true,
+          "collection_error_excerpt": "=================================== ERRORS ====================================\n__________________ ERROR collecting tests/test_validation.py __________________\ntests\\test_validation.py:3: in <module>\n    from validation import validate_age\nE     File \"validation.py\", line 9\nE       raise ValueError if value > 150 else raise TypeError(\"age must be between 0 and 150\")\nE                                            ^^^^^\nE   SyntaxError: invalid syntax",
+          "error_message": "",
+          "evidence_delivered": false,
+          "first_failure_stage": "test_collection",
+          "format_parsed": true,
+          "generation_seconds": 20.578,
+          "model_calls": 1,
+          "model_response_received": true,
+          "outcome": "failed_tests",
+          "patch_applied": true,
+          "task_id": "validation_age_003",
+          "test_reachability": false,
+          "test_seconds": 6.203,
+          "tests_collected": false,
+          "tests_executed": false,
+          "tests_failed": false,
+          "tests_passed": false,
+          "total_tokens": 530,
+          "wall_clock_seconds": 35.547
+        }
+      ],
+      "tests_executed": 0
+    },
+    {
+      "applied": 3,
+      "format": "edit_json_single",
+      "infrastructure_errors": 0,
+      "manifest_path": "outputs\\preflight_v3\\run-20261020-104552-2bc638.manifest.json",
+      "parsed": 3,
+      "preflight_ready": true,
+      "run_id": "run-20261020-104552-2bc638",
+      "task_count": 3,
+      "tasks": [
+        {
+          "applicability_validated": true,
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "applied": true,
+              "attempt": 1,
+              "collection_error_excerpt": "",
+              "failure_category": "none",
+              "failure_stage": "",
+              "rejected_reason": "",
+              "test_outcome": "passed"
+            }
+          ],
+          "collection_error_captured": false,
+          "collection_error_excerpt": "",
+          "error_message": "",
+          "evidence_delivered": false,
+          "first_failure_stage": "",
+          "format_parsed": true,
+          "generation_seconds": 10.407,
+          "model_calls": 1,
+          "model_response_received": true,
+          "outcome": "verified_success",
+          "patch_applied": true,
+          "task_id": "return_missing_009",
+          "test_reachability": true,
+          "test_seconds": 4.015,
+          "tests_collected": true,
+          "tests_executed": true,
+          "tests_failed": false,
+          "tests_passed": true,
+          "total_tokens": 487,
+          "wall_clock_seconds": 22.781
+        },
+        {
+          "applicability_validated": true,
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "applied": true,
+              "attempt": 1,
+              "collection_error_excerpt": "",
+              "failure_category": "unknown",
+              "failure_stage": "test_result",
+              "rejected_reason": "",
+              "test_outcome": "failed"
+            }
+          ],
+          "collection_error_captured": false,
+          "collection_error_excerpt": "",
+          "error_message": "",
+          "evidence_delivered": false,
+          "first_failure_stage": "test_result",
+          "format_parsed": true,
+          "generation_seconds": 8.844,
+          "model_calls": 1,
+          "model_response_received": true,
+          "outcome": "failed_tests",
+          "patch_applied": true,
+          "task_id": "sorting_records_007",
+          "test_reachability": true,
+          "test_seconds": 4.905,
+          "tests_collected": true,
+          "tests_executed": true,
+          "tests_failed": true,
+          "tests_passed": false,
+          "total_tokens": 464,
+          "wall_clock_seconds": 21.219
+        },
+        {
+          "applicability_validated": true,
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "applied": true,
+              "attempt": 1,
+              "collection_error_excerpt": "",
+              "failure_category": "unknown",
+              "failure_stage": "test_result",
+              "rejected_reason": "",
+              "test_outcome": "failed"
+            }
+          ],
+          "collection_error_captured": false,
+          "collection_error_excerpt": "",
+          "error_message": "",
+          "evidence_delivered": false,
+          "first_failure_stage": "test_result",
+          "format_parsed": true,
+          "generation_seconds": 11.375,
+          "model_calls": 1,
+          "model_response_received": true,
+          "outcome": "failed_tests",
+          "patch_applied": true,
+          "task_id": "validation_age_003",
+          "test_reachability": true,
+          "test_seconds": 4.547,
+          "tests_collected": true,
+          "tests_executed": true,
+          "tests_failed": true,
+          "tests_passed": false,
+          "total_tokens": 499,
+          "wall_clock_seconds": 23.375
+        }
+      ],
+      "tests_executed": 3
+    }
+  ],
+  "generated_at": "2026-10-20T05:17:00+00:00",
+  "preflight_ready": true,
+  "ready_formats": [
+    "edit_json_single"
+  ],
+  "stop_rule": "A format is ready only if >=2/3 patches apply, >=2/3 attempts execute a non-empty test suite, and there are no infrastructure errors."
+}

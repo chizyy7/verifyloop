@@ -142,3 +142,25 @@ def test_summarize_statuses_limits_output() -> None:
     rendered = summarize_statuses(report, limit=5)
     assert rendered.count("\n") <= 5
     assert "more tests" in rendered
+
+
+def test_collection_error_is_serialized_and_rendered() -> None:
+    report = TestReport(
+        command=["python", "-m", "pytest"],
+        exit_code=2,
+        duration_seconds=0.2,
+        collection_error_excerpt=(
+            "ERROR collecting test_broken.py\n"
+            "E   IndentationError: unexpected indent"
+        ),
+    )
+    evidence = build_evidence(
+        report,
+        attempt=1,
+        category=FailureCategory.SYNTAX_ERROR,
+    )
+    data = evidence.to_dict()
+    assert "IndentationError" in data["collection_error_excerpt"]
+    rendered = format_evidence_report(evidence)
+    assert "### Collection error" in rendered
+    assert "IndentationError" in rendered
