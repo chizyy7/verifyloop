@@ -255,6 +255,9 @@ Analyzed cells (four tasks, infrastructure errors excluded from valid counts):
 | `blind_retry` | 7 | 0 | 0 | 7 | 2.00 | 45.8 | 804 |
 | `evidence_guided` | 8 | 0 | 1 | 7 | 2.00 | 40.6 | 781 |
 
+Means are over valid cells; the one infrastructure cell (run 1, blind,
+`validation_age_003`) is excluded.
+
 **Key finding:** 19 of 23 valid analyzed cells ended in patch rejection before the
 test suite could judge them; only four ended with tests as the final gate. Across all
 attempts, 7 of 24 analyzed cells had at least one patch reach tests. The evidence

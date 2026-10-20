@@ -73,6 +73,29 @@ Selection criteria were declared before the runs:
 All five selected tasks passed the benchmark validation gate: the baseline fails,
 the reference fix applies, and both visible and hidden suites pass after the fix.
 
+### Test-quality conclusions for the selected tasks
+
+- `validation_age_003`: hidden tests cover inclusive bounds, negatives, booleans,
+  floats, and values just inside the bounds. The visible suite covers the typical
+  case and the two out-of-range errors. Correctness and type/regression behavior are
+  measured.
+- `sorting_records_007`: hidden tests cover tie-breaking in both sort directions,
+  input mutation, a custom key, and empty/single input. Regression safety is
+  measured.
+- `return_missing_009`: hidden tests cover the list type, empty result, preserved
+  order, duplicates, both-empty input, a superset, and generator input. Regression
+  safety is measured.
+- `validation_csv_016`: hidden tests cover quoted commas, escaped quotes, empty
+  fields, and trailing commas; these follow directly from the required `csv` module.
+  Plain lines and the empty line are covered by the visible suite.
+- `exception_json_005`: hidden tests cover `ValueError`, exception chaining, the
+  missing-file default, directory `OSError` propagation, and nested round-trip.
+  Correctness and regression safety are measured.
+
+The three excluded boundary tasks are excluded precisely because one or more of
+their hidden tests was not implied by the task description or did not measure the
+claimed property.
+
 ### Excluded during the audit
 
 | Task | Reason |
@@ -179,6 +202,9 @@ python -m verifyloop run --config config/pilot_ollama.yaml
 | `run-20261020-034833-5bcb12` | 2026-10-20 03:48:33 | 15 | 1,011.2 s | 7,920 (6,901 + 1,019) |
 | `run-20261020-090734-fbc80c` | 2026-10-20 09:07:34 | 15 | 918.8 s | 10,030 (8,267 + 1,763) |
 
+Total wall is the sum of per-cell wall clocks, including baseline checks and
+timeouts; run 1's total includes four ~120 s infrastructure timeouts.
+
 The second run followed the preflight and was intended as the cleaner repeat. It
 is reported separately rather than replacing the first run. The one-shot success
 from run 1 did not replicate.
@@ -230,6 +256,9 @@ Infrastructure errors were not counted as strategy failures:
 | oneshot | 8 | 8 | 1 | 2 | 5 | 0 | 1.00 | 42.0 | 487 |
 | blind_retry | 8 | 7 | 0 | 0 | 7 | 1 | 2.00 | 45.8 | 804 |
 | evidence_guided | 8 | 8 | 0 | 1 | 7 | 0 | 2.00 | 40.6 | 781 |
+
+Means are over valid cells. Wall time includes baseline checks; test time is zero
+for cells whose patch never ran, so test-time means are not directly comparable.
 
 These cells are **not independent trials**. They are two sequential runs of the
 same model and tasks. Combined counts are descriptive only.
