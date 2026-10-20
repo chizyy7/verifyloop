@@ -1,0 +1,71 @@
+# Frozen pilot configuration: llama3.2:3b, five audited tasks, three conditions.
+#
+# Selection criteria (declared before running):
+#   - single Python source file, <= 15 lines
+#   - at least 3 visible tests and 3 hidden evaluation tests
+#   - every hidden test implied by the task description (no unstated requirements)
+#   - deterministic, standard-library only, no external services
+#
+# Excluded during the audit:
+#   boundary_paginate_001  hidden iterator test is not in the task description
+#   boundary_stats_002      hidden generator test is not in the task description
+#   boundary_binary_015     "logarithmic" hidden test does not measure complexity
+#   multi-function / multi-file tasks (harder and outside the small-task pilot)
+#
+# No task definition, visible test, hidden test, scoring rule, or success criterion
+# was changed for this pilot.
+
+name: pilot-ollama-3b-5task
+notes: >
+  Small feasibility pilot: 5 tasks x 3 conditions x 1 trial on llama3.2:3b via
+  Ollama, CPU-only. Descriptive only; no statistical significance is claimed.
+
+benchmark:
+  root: benchmarks/synthetic
+  version: v1
+  task_ids:
+    - exception_json_005
+    - return_missing_009
+    - sorting_records_007
+    - validation_age_003
+    - validation_csv_016
+
+provider:
+  provider: ollama
+  model: llama3.2:3b
+  base_url: http://localhost:11434
+  request_timeout_seconds: 120
+  max_output_tokens: 700
+  temperature: 0.0
+  seed: 0
+
+budgets:
+  max_attempts: 2
+  max_model_calls: 3
+  max_total_tokens: 30000
+  max_wall_clock_seconds: 300
+  max_patch_bytes: 24000
+  max_output_chars: 6000
+  # 120s (repository default). Task suites normally finish in 2-4s; the margin is
+  # deliberate because one transient >120s stall was observed during validation on
+  # this machine. A short timeout would misclassify a correct patch as a failure.
+  test_timeout_seconds: 120
+
+execution:
+  allowed_commands:
+    - python
+    - python3
+    - py
+    - pytest
+  workspace_root: null
+  keep_workspaces: false
+
+strategies:
+  - oneshot
+  - blind_retry
+  - evidence_guided
+
+trials: 1
+task_order: fixed
+patch_format: edit_json
+output_dir: outputs

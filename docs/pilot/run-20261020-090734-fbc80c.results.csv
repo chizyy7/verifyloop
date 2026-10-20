@@ -1,0 +1,16 @@
+run_id,task_id,strategy,trial,model,provider,benchmark_version,outcome,verified_success,attempt_count,model_calls,prompt_tokens,completion_tokens,total_tokens,generation_seconds,test_seconds,wall_clock_seconds,regression_detected,budget_exhausted,failure_category,visible_only_success,protected_assets_modified,error_message
+run-20261020-090734-fbc80c,exception_json_005,blind_retry,0,llama3.2:3b,ollama,v1,patch_rejected,0,2,2,642,146,788,45.734,0.0,164.5,0,0,patch_conflict,0,0,file does not exist: path/to/edit1.py
+run-20261020-090734-fbc80c,exception_json_005,evidence_guided,0,llama3.2:3b,ollama,v1,patch_rejected,0,2,2,642,146,788,21.828,0.0,127.75,0,0,patch_conflict,0,0,file does not exist: path/to/edit1.py
+run-20261020-090734-fbc80c,exception_json_005,oneshot,0,llama3.2:3b,ollama,v1,infrastructure_error,0,0,0,0,0,0,0.0,0.0,121.907,0,0,environment_error,0,0,baseline execution failed: TIMEOUT
+run-20261020-090734-fbc80c,return_missing_009,blind_retry,0,llama3.2:3b,ollama,v1,patch_rejected,0,2,2,662,152,814,30.5,0.0,44.359,0,0,patch_conflict,0,0,search text not found in diffing.py
+run-20261020-090734-fbc80c,return_missing_009,evidence_guided,0,llama3.2:3b,ollama,v1,patch_rejected,0,2,2,662,152,814,29.437,0.0,44.672,0,0,patch_conflict,0,0,search text not found in diffing.py
+run-20261020-090734-fbc80c,return_missing_009,oneshot,0,llama3.2:3b,ollama,v1,patch_rejected,0,1,1,436,106,542,34.985,0.0,41.328,0,0,patch_conflict,0,0,search text not found in diffing.py
+run-20261020-090734-fbc80c,sorting_records_007,blind_retry,0,llama3.2:3b,ollama,v1,patch_rejected,0,2,2,644,95,739,21.954,0.0,35.219,0,0,patch_conflict,0,0,search text not found in ranking.py
+run-20261020-090734-fbc80c,sorting_records_007,evidence_guided,0,llama3.2:3b,ollama,v1,patch_rejected,0,2,2,644,95,739,17.282,0.0,27.969,0,0,patch_conflict,0,0,search text not found in ranking.py
+run-20261020-090734-fbc80c,sorting_records_007,oneshot,0,llama3.2:3b,ollama,v1,patch_rejected,0,1,1,419,49,468,24.563,0.0,34.985,0,0,patch_conflict,0,0,search text not found in ranking.py
+run-20261020-090734-fbc80c,validation_age_003,blind_retry,0,llama3.2:3b,ollama,v1,patch_rejected,0,2,2,658,406,1064,80.938,3.469,96.844,0,0,patch_conflict,0,0,file does not exist: path/to/file.py
+run-20261020-090734-fbc80c,validation_age_003,evidence_guided,0,llama3.2:3b,ollama,v1,patch_rejected,0,2,2,725,139,864,33.657,3.594,49.765,0,0,patch_conflict,0,0,search text not found in validation.py
+run-20261020-090734-fbc80c,validation_age_003,oneshot,0,llama3.2:3b,ollama,v1,failed_tests,0,1,1,441,40,481,22.953,6.359,41.657,0,0,unknown,0,0,
+run-20261020-090734-fbc80c,validation_csv_016,blind_retry,0,llama3.2:3b,ollama,v1,patch_rejected,0,2,2,639,94,733,21.86,0.0,31.016,0,0,patch_conflict,0,0,search text not found in ingest.py
+run-20261020-090734-fbc80c,validation_csv_016,evidence_guided,0,llama3.2:3b,ollama,v1,patch_rejected,0,2,2,639,94,733,16.703,0.0,25.609,0,0,patch_conflict,0,0,search text not found in ingest.py
+run-20261020-090734-fbc80c,validation_csv_016,oneshot,0,llama3.2:3b,ollama,v1,patch_rejected,0,1,1,414,49,463,22.781,0.0,31.234,0,0,patch_conflict,0,0,search text not found in ingest.py

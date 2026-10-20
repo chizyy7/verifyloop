@@ -1,0 +1,142 @@
+{
+  "comparisons": [
+    {
+      "both_succeeded": 0,
+      "difference": 0.0,
+      "difference_ci": [
+        0.0,
+        0.0
+      ],
+      "mcnemar": {
+        "b": 0,
+        "c": 0,
+        "note": "no discordant pairs",
+        "p_value": 1.0
+      },
+      "neither": 3,
+      "only_a": 0,
+      "only_b": 0,
+      "pairs": 3,
+      "strategy_a": "blind_retry",
+      "strategy_b": "evidence_guided"
+    },
+    {
+      "both_succeeded": 0,
+      "difference": -0.3333333333333333,
+      "difference_ci": [
+        -1.0,
+        0.0
+      ],
+      "mcnemar": {
+        "b": 0,
+        "c": 1,
+        "note": "exact binomial, two-sided",
+        "p_value": 1.0
+      },
+      "neither": 2,
+      "only_a": 0,
+      "only_b": 1,
+      "pairs": 3,
+      "strategy_a": "blind_retry",
+      "strategy_b": "oneshot"
+    },
+    {
+      "both_succeeded": 0,
+      "difference": -0.25,
+      "difference_ci": [
+        -0.75,
+        0.0
+      ],
+      "mcnemar": {
+        "b": 0,
+        "c": 1,
+        "note": "exact binomial, two-sided",
+        "p_value": 1.0
+      },
+      "neither": 3,
+      "only_a": 0,
+      "only_b": 1,
+      "pairs": 4,
+      "strategy_a": "evidence_guided",
+      "strategy_b": "oneshot"
+    }
+  ],
+  "strategies": {
+    "blind_retry": {
+      "budget_exhausted": 0,
+      "failure_categories": {
+        "patch_conflict": 3
+      },
+      "infrastructure_failures": 2,
+      "invalid_tasks": 0,
+      "mean_attempts": 2.0,
+      "mean_model_calls": 2.0,
+      "mean_tokens": 760.3333333333334,
+      "mean_wall_clock": 37.646,
+      "median_attempts": 2,
+      "median_wall_clock": 33.61,
+      "patch_rejections": 3,
+      "regression_free_rate": 0.0,
+      "regressions": 0,
+      "strategy": "blind_retry",
+      "valid_tasks": 3,
+      "verified_ci_lower": 0.0,
+      "verified_ci_upper": 0.5615060804490177,
+      "verified_rate": 0.0,
+      "verified_successes": 0,
+      "visible_only_successes": 0
+    },
+    "evidence_guided": {
+      "budget_exhausted": 0,
+      "failure_categories": {
+        "patch_conflict": 3,
+        "unknown": 1
+      },
+      "infrastructure_failures": 1,
+      "invalid_tasks": 0,
+      "mean_attempts": 2.0,
+      "mean_model_calls": 2.0,
+      "mean_tokens": 773.75,
+      "mean_wall_clock": 44.1525,
+      "median_attempts": 2.0,
+      "median_wall_clock": 34.625,
+      "patch_rejections": 3,
+      "regression_free_rate": 0.0,
+      "regressions": 0,
+      "strategy": "evidence_guided",
+      "valid_tasks": 4,
+      "verified_ci_lower": 0.0,
+      "verified_ci_upper": 0.48990002040399916,
+      "verified_rate": 0.0,
+      "verified_successes": 0,
+      "visible_only_successes": 0
+    },
+    "oneshot": {
+      "budget_exhausted": 1,
+      "failure_categories": {
+        "none": 1,
+        "patch_conflict": 2,
+        "syntax_error": 1
+      },
+      "infrastructure_failures": 1,
+      "invalid_tasks": 0,
+      "mean_attempts": 1.0,
+      "mean_model_calls": 1.0,
+      "mean_tokens": 486.0,
+      "mean_wall_clock": 46.672,
+      "median_attempts": 1.0,
+      "median_wall_clock": 44.7585,
+      "patch_rejections": 2,
+      "regression_free_rate": 0.25,
+      "regressions": 0,
+      "strategy": "oneshot",
+      "valid_tasks": 4,
+      "verified_ci_lower": 0.045586062644636216,
+      "verified_ci_upper": 0.6993639475573634,
+      "verified_rate": 0.25,
+      "verified_successes": 1,
+      "visible_only_successes": 0
+    }
+  },
+  "total_results": 15
+}

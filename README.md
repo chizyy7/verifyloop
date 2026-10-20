@@ -23,15 +23,16 @@ evaluation.
 | 16-task synthetic benchmark + validation gate | Implemented and validated |
 | Deterministic `mock` provider | Working (offline) |
 | Native Ollama provider | Working; exercised end-to-end with `llama3.2:3b` |
-| Real-model pilot | Completed; **the 3B model did not solve the pilot task** |
+| Real-model pilot | Two-run, five-task feasibility pilot completed; **1 verified success in 23 valid analyzed cells; the evidence contrast was not reliably exercised** |
 | Streamlit dashboard | **Not implemented yet** |
 
-The full local suite currently passes: **164 tests** (unit, security, benchmark,
+The full local suite currently passes: **165 tests** (unit, security, benchmark,
 integration), measured on 2026-10-20.
 
 Mock-provider runs are pipeline demonstrations. They are **never** evidence about
-real-model behaviour. The real pilot and its raw outputs are documented in
-[`docs/ollama_integration.md`](docs/ollama_integration.md).
+real-model behaviour. The five-task pilot and its raw exports are documented in
+[`docs/pilot/pilot_report.md`](docs/pilot/pilot_report.md); the earlier single-task
+integration check is in [`docs/ollama_integration.md`](docs/ollama_integration.md).
 
 ---
 
@@ -125,6 +126,19 @@ verifyloop run --config config/local_ollama.yaml `
   --trials 1 --max-attempts 2
 ```
 
+### 3. Reproduce the five-task feasibility pilot
+
+```powershell
+python scripts/preflight_pilot.py --config config/pilot_ollama.yaml
+python -m verifyloop provider-check --config config/pilot_ollama.yaml
+python -m verifyloop run --config config/pilot_ollama.yaml
+```
+
+The preflight hydrates OneDrive placeholders and confirms every selected baseline
+fails. The run is sequential and uses the frozen budgets in
+`config/pilot_ollama.yaml`. Results are analyzed with `scripts/analyze_pilot.py`;
+see [`docs/pilot/pilot_report.md`](docs/pilot/pilot_report.md).
+
 ---
 
 ## Conditions
@@ -217,6 +231,48 @@ security sandbox**.
 
 ## Results so far
 
+### Five-task pilot (2026-10-20)
+
+Model: `llama3.2:3b` via Ollama, CPU-only. Five tasks were selected by an audit
+(single-file, small, hidden tests implied by the specification). Four are analyzed;
+`exception_json_005` was excluded after its `tmp_path` suite took 97–120 s with the
+model resident (2–5 s otherwise), making its timing and feasibility non-comparable.
+Two sequential runs are preserved; they are not independent trials.
+
+All recorded cells (including the excluded task):
+
+| Run | Verified | Failed tests | Patch rejected | Infrastructure error |
+|---|---:|---:|---:|---:|
+| Run 1 | 1 | 2 | 8 | 4 |
+| Run 2 | 0 | 1 | 13 | 1 |
+| **Total** | **1** | **3** | **21** | **5** |
+
+Analyzed cells (four tasks, infrastructure errors excluded from valid counts):
+
+| Condition | Valid cells | Verified | Failed tests | Patch rejected | Mean attempts | Mean wall s | Mean tokens |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `oneshot` | 8 | 1 | 2 | 5 | 1.00 | 42.0 | 487 |
+| `blind_retry` | 7 | 0 | 0 | 7 | 2.00 | 45.8 | 804 |
+| `evidence_guided` | 8 | 0 | 1 | 7 | 2.00 | 40.6 | 781 |
+
+**Key finding:** 19 of 23 valid analyzed cells ended in patch rejection before the
+test suite could judge them; only four ended with tests as the final gate. Across all
+attempts, 7 of 24 analyzed cells had at least one patch reach tests. The evidence
+condition received a structured test report in just two cells (both
+`validation_age_003`), and both retries failed. The single verified success (run 1,
+one-shot, `return_missing_009`) did not replicate in run 2. The model is
+nondeterministic despite `temperature=0` and `seed=0`.
+
+**No strategy is claimed superior, and no statistical significance is claimed.**
+The evidence contrast was not exercised often enough to support a comparison; the
+dominant failure mode was patch applicability. Full counts, timings, failure
+categories, raw examples, limitations, and reproduction commands are in
+[`docs/pilot/pilot_report.md`](docs/pilot/pilot_report.md). Generated tables are in
+[`docs/pilot/analysis.md`](docs/pilot/analysis.md); the CSV/JSONL exports and run
+manifests are under [`docs/pilot/`](docs/pilot/).
+
+### Earlier integration check (single task)
+
 Pilot task: `boundary_paginate_001` (single-file off-by-one defect).
 Model: `llama3.2:3b` via Ollama, CPU-only.
 
@@ -241,15 +297,20 @@ verifyloop/
 ├── benchmarks/synthetic/v1/      16 tasks: repo, tests, eval_tests, reference fix
 ├── config/
 │   ├── default.yaml              offline mock configuration
-│   └── local_ollama.yaml         llama3.2:3b pilot configuration
+│   ├── local_ollama.yaml         earlier single-task Ollama configuration
+│   └── pilot_ollama.yaml         frozen five-task pilot configuration
 ├── docs/
-│   ├── ollama_integration.md     commands, measurements, raw outputs, limitations
-│   └── phase0_environment_report.md
+│   ├── ollama_integration.md     earlier integration check and raw outputs
+│   ├── phase0_environment_report.md
+│   └── pilot/                    pilot report, analysis, CSV/JSONL exports, manifests
 ├── scripts/
 │   ├── build_benchmark.py        single source of truth for the corpus
 │   ├── validate_benchmark.py     benchmark contract gate
 │   ├── run_smoke_test.py         offline end-to-end proof
-│   └── probe_provider.py         thin wrapper over the diagnostics
+│   ├── probe_provider.py         thin wrapper over the diagnostics
+│   ├── audit_pilot_tasks.py      task/test suitability audit
+│   ├── preflight_pilot.py        OneDrive hydration + baseline preflight
+│   └── analyze_pilot.py          descriptive analysis of run JSONL
 ├── src/verifyloop/
 │   ├── benchmark/                manifest loading + integrity checks
 │   ├── execution/                allowlisted runner, JUnit parser, policies, workspace
@@ -282,22 +343,29 @@ pip install -e ".[ui]"         # streamlit, pandas
 pip install -e ".[analysis]"   # matplotlib, numpy, scipy
 ```
 
-The repository intentionally ignores `outputs/`, `*.log`, databases, and caches.
-Pilot evidence is summarised and linked from the documentation rather than committed
-as generated runtime data.
+The repository ignores `outputs/`, `*.log`, databases, and caches. Curated pilot
+CSV/JSONL exports, summaries, and manifests are committed under `docs/pilot/`;
+raw console logs and the SQLite database stay local.
 
 ---
 
 ## Limitations
 
 - The benchmark is synthetic, not production incidents.
-- The pilot uses one task, one trial, and one model; no significance is claimed.
+- The feasibility pilot analyzes four tasks over two sequential runs with one
+  model; cells are not independent and no significance is claimed. A fifth task
+  (`exception_json_005`) was excluded after a measured `tmp_path` slowdown.
+- Most analyzed patches were rejected before tests, so the evidence-guided
+  contrast was rarely delivered; this pilot cannot rank the strategies.
+- The 3B model was nondeterministic across runs despite a fixed seed, so single
+  trials are unstable.
 - Inference is CPU-only on a 16 GB laptop. The 8B model could not allocate its
   model-load buffer; the 3B model was used instead.
 - Process isolation is not a security sandbox.
 - The dashboard is not implemented.
-- Token counts use provider-reported usage when available and a character estimate
-  otherwise; the estimator is recorded per attempt.
+- Token counts are Ollama-reported `prompt_eval_count`/`eval_count` for these
+  runs; the controller falls back to a character estimate only when a provider
+  omits usage.
 
 ---
 

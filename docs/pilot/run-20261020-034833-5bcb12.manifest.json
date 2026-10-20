@@ -1,0 +1,147 @@
+{
+  "benchmark": {
+    "description": "Self-contained synthetic Python bug-fixing tasks with visible feedback tests and hidden evaluation tests. Every defect is deliberately seeded.",
+    "name": "verifyloop-synthetic",
+    "reference_fix_hashes": {
+      "exception_json_005": "8c6e83bed8ecf47383ddff5deb7e07bf8b2acdbfa262bc4b9db41924a10dc3ad",
+      "return_missing_009": "263f6712bbace477d8621076a79cef686f9329711c79391f9c79b5760b9ed9f5",
+      "sorting_records_007": "9d5a7151e8272b1c6a1d99f16516da4dfad061f463188db010e1e6f17c2f5960",
+      "validation_age_003": "7fe99ba3e6c07dd0fefbab342f8144b4518e4e3603a3cc399bd7a96ae47d5ba6",
+      "validation_csv_016": "08abd83cf813af881374a29ebe5098bf983cab294dd8eb041adafe47cc5708f5"
+    },
+    "task_count": 5,
+    "task_ids": [
+      "exception_json_005",
+      "return_missing_009",
+      "sorting_records_007",
+      "validation_age_003",
+      "validation_csv_016"
+    ],
+    "version": "v1"
+  },
+  "budgets": {
+    "max_attempts": 2,
+    "max_model_calls": 3,
+    "max_output_chars": 6000,
+    "max_patch_bytes": 24000,
+    "max_total_tokens": 30000,
+    "max_wall_clock_seconds": 300.0,
+    "test_timeout_seconds": 120.0
+  },
+  "config": {
+    "benchmark": {
+      "protected_paths": [
+        "**/test_*.py",
+        "**/*_test.py",
+        "**/tests/**",
+        "**/eval_tests/**",
+        "**/manifest.json",
+        "**/reference/**",
+        "**/task.json"
+      ],
+      "root": "benchmarks/synthetic",
+      "task_ids": [
+        "exception_json_005",
+        "return_missing_009",
+        "sorting_records_007",
+        "validation_age_003",
+        "validation_csv_016"
+      ],
+      "version": "v1"
+    },
+    "budgets": {
+      "max_attempts": 2,
+      "max_model_calls": 3,
+      "max_output_chars": 6000,
+      "max_patch_bytes": 24000,
+      "max_total_tokens": 30000,
+      "max_wall_clock_seconds": 300.0,
+      "test_timeout_seconds": 120.0
+    },
+    "execution": {
+      "allowed_commands": [
+        "python",
+        "python3",
+        "py",
+        "pytest"
+      ],
+      "keep_workspaces": false,
+      "workspace_root": null
+    },
+    "name": "pilot-ollama-3b-5task",
+    "notes": "Small feasibility pilot: 5 tasks x 3 conditions x 1 trial on llama3.2:3b via Ollama, CPU-only. Descriptive only; no statistical significance is claimed.\n",
+    "output_dir": "outputs",
+    "patch_format": "edit_json",
+    "provider": {
+      "api_key_env": "MODEL_API_KEY",
+      "api_key_present": false,
+      "base_url": "http://localhost:11434",
+      "max_output_tokens": 700,
+      "model": "llama3.2:3b",
+      "provider": "ollama",
+      "request_timeout_seconds": 120.0,
+      "seed": 0,
+      "temperature": 0.0
+    },
+    "strategies": [
+      "oneshot",
+      "blind_retry",
+      "evidence_guided"
+    ],
+    "task_order": "fixed",
+    "trials": 1
+  },
+  "created_at": "2026-10-19T22:18:33+00:00",
+  "execution": {
+    "allowed_commands": [
+      "python",
+      "python3",
+      "py",
+      "pytest"
+    ]
+  },
+  "experiment_name": "pilot-ollama-3b-5task",
+  "limitations": [
+    "Synthetic benchmark; not production incidents.",
+    "Single machine, CPU-only inference; no GPU.",
+    "Process isolation is resource/scope control, not a security sandbox.",
+    "Token counts use provider-reported usage when available and a character estimate otherwise; the estimator is recorded per attempt."
+  ],
+  "notes": "Small feasibility pilot: 5 tasks x 3 conditions x 1 trial on llama3.2:3b via Ollama, CPU-only. Descriptive only; no statistical significance is claimed.\n",
+  "patch_format": "edit_json",
+  "protected_paths": [
+    "**/test_*.py",
+    "**/*_test.py",
+    "**/tests/**",
+    "**/eval_tests/**",
+    "**/manifest.json",
+    "**/reference/**",
+    "**/task.json"
+  ],
+  "provider": {
+    "api_key_present": false,
+    "base_url": "http://localhost:11434",
+    "model": "llama3.2:3b",
+    "provider": "ollama",
+    "seed": 0,
+    "temperature": 0.0,
+    "timeout_seconds": 120.0
+  },
+  "run_id": "run-20261020-034833-5bcb12",
+  "software": {
+    "machine": "AMD64",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "pydantic": "2.13.4",
+    "python": "3.10.11",
+    "python_implementation": "CPython",
+    "verifyloop": "0.1.0"
+  },
+  "strategies": [
+    "oneshot",
+    "blind_retry",
+    "evidence_guided"
+  ],
+  "task_order": "fixed",
+  "task_order_seed": 0,
+  "trials": 1
+}

@@ -313,6 +313,23 @@ def test_oneshot_never_retries(task, reference_patch) -> None:
     ).run()
     assert len(result.attempts) == 1
     assert result.model_calls == 1
+    # Stopping because one-shot chooses not to retry is not budget exhaustion.
+    assert result.budget_exhausted is False
+
+
+def test_oneshot_does_not_retry_after_provider_error(task) -> None:
+    """A provider error must not turn one-shot into a retrying condition."""
+    result = make_controller(
+        task,
+        [MockResponse(error=ProviderTimeout, error_message="simulated timeout"),
+         MockResponse(text="this response must never be requested")],
+        strategy="oneshot",
+        max_attempts=2,
+    ).run()
+    assert len(result.attempts) == 1
+    assert result.model_calls == 1
+    assert result.outcome is Outcome.INFRASTRUCTURE_ERROR
+    assert "timeout" in result.attempts[0].model_error.lower()
 
 
 def test_state_log_is_auditable(task, reference_patch) -> None:

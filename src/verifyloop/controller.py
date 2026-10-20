@@ -281,7 +281,10 @@ class RepairController:
 
             if record.model_error:
                 self.result.failure_category = FailureCategory.MODEL_ERROR
-                if not self.budget.can_call_model() or attempt >= self.config.budgets.max_attempts:
+                # Respect the strategy policy here too: a one-shot run must not
+                # retry after a provider error, or the condition is no longer
+                # one-shot and its budget accounting becomes incomparable.
+                if not self._may_retry(attempt):
                     self.result.outcome = Outcome.INFRASTRUCTURE_ERROR
                     self.result.error_message = record.model_error
                     self._outcome_decided = True
@@ -358,8 +361,15 @@ class RepairController:
                 self._final_changed_files = self._changed_source_files(workspace)
                 self.result.outcome = Outcome.FAILED_TESTS
                 self.result.failure_category = category
-                # Distinguish "ran out of attempts" from "ran out of budget".
-                if attempt < self.config.budgets.max_attempts:
+                # Distinguish "the strategy chose to stop" (one-shot) and "ran out
+                # of attempts" from "ran out of budget". Without the strategy
+                # check, one-shot would be mislabeled as budget-exhausted merely
+                # because its configured attempt ceiling is larger than one.
+                if (
+                    self._strategy_would_retry(attempt)
+                    and attempt < self.config.budgets.max_attempts
+                    and not self.budget.can_call_model()
+                ):
                     self.result.budget_exhausted = True
                 return
 
@@ -394,8 +404,8 @@ class RepairController:
             attempt += 1
             workspace.reset()
 
-    def _may_retry(self, attempt: int) -> bool:
-        if not self.strategy.should_retry(
+    def _strategy_would_retry(self, attempt: int) -> bool:
+        return self.strategy.should_retry(
             StrategyContext(
                 task_description="",
                 expected_behavior="",
@@ -404,7 +414,10 @@ class RepairController:
                 attempt=attempt,
                 max_attempts=self.config.budgets.max_attempts,
             )
-        ):
+        )
+
+    def _may_retry(self, attempt: int) -> bool:
+        if not self._strategy_would_retry(attempt):
             return False
         return attempt < self.config.budgets.max_attempts and self.budget.can_call_model()
 

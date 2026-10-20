@@ -8,6 +8,10 @@ solve the pilot task; that is reported as a negative result, not hidden.
 This document covers the local-provider path only. Mock-provider results are
 pipeline demonstrations and are never evidence about real-model behaviour.
 
+> **Scope note:** this is the earlier single-task integration check. The five-task
+> feasibility pilot and its analysis are in
+> [`docs/pilot/pilot_report.md`](pilot/pilot_report.md).
+
 ## 1. Architecture reused
 
 VerifyLoop already had a provider-independent interface:
